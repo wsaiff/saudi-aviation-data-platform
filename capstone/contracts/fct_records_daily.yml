@@ -1,0 +1,30 @@
+contract_version: 1
+name: fct_records_daily
+status: draft
+description: >-
+  Daily warehouse output contract for the dashboard. Confirm the reporting
+  timezone, dimensions, and meaning of a record before treating this as final.
+
+grain: One row per reporting date.
+
+key:
+  columns:
+    - record_date
+  uniqueness: expected_unique
+
+freshness:
+  timestamp_field: null
+  target_lag: null
+  timezone: null
+
+fields:
+  - name: record_date
+    type: date
+    nullable: false
+    description: Reporting date, using the confirmed reporting timezone.
+  - name: record_count
+    type: integer
+    nullable: false
+    description: Count of source records assigned to the reporting date.
+
+# Add dimensions and measures only after the dashboard requirements are agreed.

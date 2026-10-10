@@ -1,0 +1,8 @@
+# Replace placeholder teams with the repository's actual GitHub teams.
+*                                      @your-org/platform
+/.github/                              @your-org/platform
+/.github/pull_request_template.md      @your-org/product
+/contracts/source_a.yml                @your-org/source
+/contracts/fct_records_daily.yml       @your-org/warehouse @your-org/product
+/docs/                                 @your-org/product
+/notebooks/                            @your-org/source

@@ -1,0 +1,27 @@
+contract_version: 1
+name: source_a
+status: draft
+description: >-
+  Raw input contract for Source A. Confirm the source system and inspect a real
+  extract before replacing any TODO values or publishing this contract.
+
+source:
+  system: TODO_confirm_source_system
+  dataset: TODO_confirm_dataset_or_table
+  owner: TODO_confirm_source_owner
+
+grain: TODO_describe_what_one_row_represents
+
+key:
+  columns: []
+  uniqueness: not_assessed
+
+freshness:
+  timestamp_field: null
+  warn_after: null
+  error_after: null
+  timezone: null
+
+# Add one entry per observed field after profiling. Use the source's actual
+# types and document nullability; do not infer types from a partial sample.
+fields: []
