@@ -1,4 +1,7 @@
+from html import escape
+
 import streamlit as st
+
 
 def render_card_header(title, description=None):
 
@@ -27,15 +30,19 @@ def render_insight(
     value,
     description,
     icon="💡",
+    height=None,
 ):
-    # Native Streamlit elements stay in the app's theme and avoid the isolated
-    # iframe used by components.html, which does not inherit styles.py CSS.
-    with st.container(border=True):
-        icon_column, content_column = st.columns(
-            [1, 5], vertical_alignment="center"
-        )
-        with icon_column:
-            st.markdown(f"### {icon}")
-        with content_column:
-            st.markdown(f"#### {value}")
-            st.caption(description)
+    card_height = f"height: {height}px;" if height is not None else ""
+    st.html(
+        f"""
+        <div class="insight-card" style="{card_height}">
+            <div class="insight-icon" aria-hidden="true">{escape(icon)}</div>
+            <div class="insight-content">
+                <div class="insight-value">{escape(str(value))}</div>
+                <div class="insight-description">
+                    {escape(description)}
+                </div>
+            </div>
+        </div>
+        """
+    )
