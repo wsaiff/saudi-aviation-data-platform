@@ -1,7 +1,26 @@
+# Environment variables and secrets
 .env
-.venv/
+.env.*
+!.env.example
+
+# Google Cloud credentials
+application_default_credentials.json
+
+# Python
 __pycache__/
 *.py[cod]
-*.duckdb
-data/
+.venv/
+venv/
+
+# dbt
 dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Python packaging artifacts
+*.egg-info/
+build/
+dist/
