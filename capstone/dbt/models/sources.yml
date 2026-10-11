@@ -1,0 +1,12 @@
+version: 2
+sources:
+  - name: bronze
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: bronze
+    tables:
+      - name: airports
+      - name: runways
+      - name: navaids
+      - name: frequencies
+      - name: regions
+      - name: countries

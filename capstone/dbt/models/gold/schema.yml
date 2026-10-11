@@ -1,0 +1,10 @@
+version: 2
+models:
+  - name: airport_infrastructure
+    columns:
+      - name: airport_ident
+        data_tests: [unique, not_null]
+  - name: region_summary
+    columns:
+      - name: region_code
+        data_tests: [unique, not_null]

@@ -1,0 +1,61 @@
+version: 2
+models:
+  - name: regions
+    columns:
+      - name: region_code
+        data_tests: [unique, not_null]
+  - name: airports
+    columns:
+      - name: airport_id
+        data_tests: [unique, not_null]
+      - name: airport_ident
+        data_tests: [unique, not_null]
+      - name: region_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('regions')
+                field: region_code
+      - name: airport_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [heliport, small_airport, medium_airport, large_airport, closed]
+  - name: runways
+    columns:
+      - name: runway_id
+        data_tests: [unique, not_null]
+      - name: airport_ident
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('airports')
+                field: airport_ident
+      - name: surface_clean
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [Asphalt, Concrete, Sand, Earth, Unknown]
+  - name: navaids
+    columns:
+      - name: navaid_id
+        data_tests: [unique, not_null]
+      - name: associated_airport_ident
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('airports')
+                field: airport_ident
+  - name: frequencies
+    columns:
+      - name: frequency_id
+        data_tests: [unique, not_null]
+      - name: airport_ident
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('airports')
+                field: airport_ident
