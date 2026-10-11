@@ -1,26 +1,17 @@
-
 # Architecture
 
-## System context (C2)
+## System context
+Current proposal for the Saudi Aviation Infrastructure & Data Platform; update the diagram as implementation and source access are confirmed.
 
-Current proposal for the capstone; update the diagram as implementation and
-source access are confirmed. The daily batch choice is recorded in
-[ADR 0001](decisions/0001-batch-or-streaming.md).
-
-```mermaid
-flowchart LR
-    Source[Source A]
-    Pipeline[Daily batch pipeline]
-    Warehouse[(Warehouse)]
-    Dashboard[Daily dashboard]
-    Stakeholder[Dashboard stakeholder]
-
-    Source -->|raw extract| Pipeline
-    Pipeline -->|validated daily records| Warehouse
-    Warehouse --> Dashboard
-    Stakeholder -->|uses| Dashboard
-```
-
-**Open decisions:** source delivery and access, warehouse technology, runtime
-orchestration, reporting timezone, and the dashboard stakeholder's freshness
-target.
+```text
+[ OurAirports Open Data ] 
+       │ (raw extract)
+       ▼
+[ Daily Batch Pipeline ] (Python / Ingestion)
+       │ (validated daily records)
+       ▼
+[ Warehouse / Local Storage ] 
+       │ 
+       ├──► [ Analytics & dbt Layers ] ──► [ Streamlit Dashboard ]
+       │                                            ▲
+       └────────────── [ Dashboard Stakeholder ] ───┘ (uses)
