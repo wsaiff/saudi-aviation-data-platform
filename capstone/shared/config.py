@@ -17,7 +17,7 @@ class Settings:
     bronze_dataset: str = "bronze"
     silver_dataset: str = "silver"
     gold_dataset: str = "gold"
-    gcp_location: str = "me-central2"
+    gcp_location: str = "EU"
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -34,7 +34,7 @@ class Settings:
             bronze_dataset=os.getenv("BRONZE_DATASET", "bronze"),
             silver_dataset=os.getenv("SILVER_DATASET", "silver"),
             gold_dataset=os.getenv("GOLD_DATASET", "gold"),
-            gcp_location=os.getenv("GCP_LOCATION", "me-central2"),
+            gcp_location=os.getenv("GCP_LOCATION", "EU"),
         )
 
 

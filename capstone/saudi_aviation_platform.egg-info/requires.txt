@@ -1,0 +1,6 @@
+google-cloud-bigquery>=3.0
+python-dotenv>=1.0
+pandas>=2.0
+streamlit>=1.30
+pyarrow==26.0.0
+requests==2.34.2
