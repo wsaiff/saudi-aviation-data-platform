@@ -1,12 +1,12 @@
-# Architecture
+# 🏗️ Architecture Design: Saudi Aviation Infrastructure & Data Platform
 
-## System context (C2)
+## 📊 System Context & Pipeline Flow (C2)
 
-Current proposal for the capstone; update the diagram as implementation and source access are confirmed. The daily batch choice is recorded in ADR 0001.
+The platform follows a robust **ELT (Extract, Load, Transform)** architecture, separating raw data ingestion from analytical processing and geospatial visualization.
 
 ```mermaid
 graph LR
-    Source[Source A] -->|raw extract| Pipeline[Daily batch pipeline]
-    Pipeline -->|validated daily records| Warehouse[(Warehouse)]
-    Warehouse --> Dashboard[Daily dashboard]
-    Stakeholder[Dashboard stakeholder] -->|uses| Dashboard
+    Source[OurAirports Open Data] -->|raw extract (CSV)| Pipeline[Daily Python Batch Pipeline]
+    Pipeline -->|filtered & validated Saudi records| Warehouse[(Local/Cloud Warehouse)]
+    Warehouse -->|dbt & Analytics Models| Dashboard[Streamlit Interactive Dashboard]
+    Stakeholder[Aviation Analysts & Stakeholders] -->|uses & explores| Dashboard
