@@ -1,30 +1,18 @@
-# Saudi Aviation Data Platform Capstone
+# Saudi Aviation Infrastructure & Data Platform
 
-## Problem and stakeholder
+> **Four datasets, one trusted view.** A modern data engineering pipeline and interactive platform focusing exclusively on Saudi Arabia's aviation infrastructure.
 
-Working hypothesis: an aviation dashboard stakeholder needs a consistent daily
-view of records from Source A. Confirm the stakeholder, current pain point, and
-decision the dashboard supports before finalizing scope; see
-[the pitch](docs/pitch.md).
+---
 
-## Decision
+## 🚀 The Problem & Solution
+Airport infrastructure data is traditionally scattered across separate source files (`airports.csv`, `runways.csv`, `navaids.csv`, `airport-frequencies.csv`)[cite: 10]. A planning analyst has to check multiple files before getting a complete picture[cite: 10]. 
 
-The proposed first iteration uses daily batch processing. This is reversible
-and pending confirmation of source delivery options and the stakeholder's
-freshness requirement. See [the ADR](docs/decisions/0001-batch-or-streaming.md)
-and [the architecture](docs/architecture.md).
+This project solves the problem by building an end-to-end automated ELT pipeline (Python, BigQuery, dbt, Streamlit) that extracts raw OurAirports data, transforms and tests it through Bronze, Silver, and Gold layers, and serves a trusted, unified analytical dashboard[cite: 12].
 
-## How to run
+---
 
-1. Put a representative, authorized extract at `data/source_a.csv`. Local data
-   is ignored by Git.
-2. Open `notebooks/01_profile_source_a.ipynb` in VS Code with the Jupyter
-   extension and a Python environment containing `pandas`.
-3. Run the cells in order, then record reviewed findings in
-   [the profiling report](docs/profiling/source_a.md) and update
-   `contracts/source_a.yml` only after the source owner confirms them.
-
-The notebook is exploration only. Production code must not import from
-`notebooks/`. Source and dashboard-facing draft contracts are in `contracts/`.
-Replace placeholder GitHub teams in `.github/CODEOWNERS` before relying on
-automatic reviewer assignment.
+## 📊 Key Features & Reporting
+Our reporting helps stakeholders understand:
+1. **Airport Infrastructure:** What infrastructure (runways, navaids, communication frequencies) is available at each Saudi airport[cite: 11]?
+2. **Regional Comparison:** How airport infrastructure differs across Saudi administrative regions[cite: 11]?
+3. **Data Coverage & Gaps:** Clear visibility into source-data coverage gaps without confusing missing records with missing physical infrastructure[cite: 5, 11].
