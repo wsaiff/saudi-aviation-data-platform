@@ -39,13 +39,54 @@ def inject_css():
         }}
 
         .main .block-container {{
-            padding-top: 2rem;
-            padding-bottom: 2rem;
+            padding-top: 0.5rem;
+            padding-bottom: 1rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
             max-width: 100%;
         }}
 
         h1, h2, h3, p {{
             font-family: Inter, Arial, sans-serif;
+        }}
+
+        label[data-testid="stWidgetLabel"] p {{
+            color: {COLORS["text"]};
+        }}
+
+        div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
+            background-color: {COLORS["card"]};
+            border-color: {COLORS["border"]};
+            border-radius: 8px;
+            color: {COLORS["text"]};
+        }}
+
+        div[data-testid="stSelectbox"] [data-baseweb="select"] input,
+        div[data-testid="stSelectbox"] [data-baseweb="select"] [data-testid="stMarkdownContainer"] p {{
+            color: {COLORS["text"]};
+        }}
+
+        div[data-testid="stSelectbox"] [data-baseweb="select"] svg {{
+            fill: {COLORS["muted"]};
+        }}
+
+        [data-baseweb="popover"],
+        [data-baseweb="popover"] [data-baseweb="menu"],
+        [data-baseweb="popover"] [role="listbox"] {{
+            background-color: {COLORS["card"]};
+            border: 1px solid {COLORS["border"]};
+            border-radius: 8px;
+        }}
+
+        [data-baseweb="popover"] [role="option"] {{
+            background-color: {COLORS["card"]};
+            color: {COLORS["text"]};
+        }}
+
+        [data-baseweb="popover"] [role="option"]:hover,
+        [data-baseweb="popover"] [role="option"][aria-selected="true"] {{
+            background-color: {COLORS["card_hover"]};
+            color: {COLORS["text"]};
         }}
 
 
@@ -59,7 +100,7 @@ def inject_css():
         }}
 
         section[data-testid="stSidebar"] > div {{
-            padding-top: 1.5rem;
+            padding-top: 1rem;
         }}
 
         section[data-testid="stSidebar"] .block-container {{
@@ -74,9 +115,26 @@ def inject_css():
         .page-header {{
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             gap: 2rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.75rem;
+            min-height: 150px;
+            padding: 1rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid {COLORS["border"]};
+            border-radius: 14px;
+            background-image:
+                linear-gradient(
+                    90deg,
+                    rgba(7,24,39,0.88) 0%,
+                    rgba(7,24,39,0.66) 58%,
+                    rgba(7,24,39,0.46) 100%
+                ),
+                var(--header-image);
+            background-position: center, center 58%;
+            background-size: cover;
+            box-sizing: border-box;
         }}
 
         .page-title {{
@@ -123,6 +181,19 @@ def inject_css():
             margin-top: 0.15rem;
         }}
 
+        .header-image-credit {{
+            align-self: flex-end;
+            color: rgba(245,247,250,0.78);
+            font-size: 0.58rem;
+            margin-top: auto;
+            text-decoration: none;
+        }}
+
+        .header-image-credit:hover {{
+            color: {COLORS["text"]};
+            text-decoration: underline;
+        }}
+
 
         /* =========================
            KPI Cards
@@ -132,40 +203,51 @@ def inject_css():
             background: {COLORS["card"]};
             border: 1px solid {COLORS["border"]};
             border-radius: 12px;
-            padding: 1rem;
-            min-height: 105px;
+            display: grid;
+            grid-template-columns: 38% minmax(0, 1fr);
+            min-height: 126px;
             box-sizing: border-box;
+            overflow: hidden;
         }}
 
         .kpi-icon {{
-            width: 38px;
-            height: 38px;
-            border-radius: 9px;
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 11px 0 0 11px;
+            object-fit: cover;
+            object-position: center;
+        }}
+
+        .kpi-content {{
+            background-color: {COLORS["card"]};
+            box-sizing: border-box;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            font-size: 1.25rem;
-            margin-bottom: 0.65rem;
+            gap: 0.35rem;
+            min-width: 0;
+            padding: 0.75rem 0.65rem;
         }}
 
         .kpi-title {{
             color: {COLORS["muted"]};
-            font-size: 0.72rem;
-            font-weight: 500;
-            margin-bottom: 0.15rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            line-height: 1.25;
         }}
 
         .kpi-value {{
             color: {COLORS["text"]};
-            font-size: 1.45rem;
+            font-size: 1.75rem;
             font-weight: 750;
-            line-height: 1.1;
+            line-height: 1;
         }}
 
         .kpi-subtitle {{
             color: {COLORS["muted"]};
-            font-size: 0.65rem;
-            margin-top: 0.2rem;
+            font-size: 0.6rem;
+            line-height: 1.25;
         }}
 
 
@@ -179,6 +261,16 @@ def inject_css():
             border-radius: 12px;
             padding: 1rem;
             box-sizing: border-box;
+        }}
+
+        .st-key-saudi-region-map-card,
+        .st-key-saudi-region-map-card [data-testid="stVerticalBlockBorderWrapper"],
+        .st-key-airports-by-region-card,
+        .st-key-airports-by-region-card [data-testid="stVerticalBlockBorderWrapper"],
+        .st-key-airports-by-type-card,
+        .st-key-airports-by-type-card [data-testid="stVerticalBlockBorderWrapper"] {{
+            background-color: {COLORS["card"]} !important;
+            border-color: {COLORS["border"]};
         }}
 
         .card-title {{
@@ -202,10 +294,13 @@ def inject_css():
             background: {COLORS["card"]};
             border: 1px solid {COLORS["border"]};
             border-radius: 12px;
-            padding: 0.9rem;
-            display: flex;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: 38px minmax(0, 1fr);
             gap: 0.75rem;
-            align-items: flex-start;
+            align-items: center;
+            padding: 0.9rem;
+            width: 100%;
         }}
 
         .insight-icon {{
@@ -220,15 +315,20 @@ def inject_css():
             flex-shrink: 0;
         }}
 
+        .insight-content {{
+            min-width: 0;
+        }}
+
         .insight-value {{
             color: {COLORS["text"]};
-            font-size: 0.9rem;
+            font-size: 1.15rem;
             font-weight: 700;
+            line-height: 1.25;
         }}
 
         .insight-description {{
             color: {COLORS["muted"]};
-            font-size: 0.68rem;
+            font-size: 0.78rem;
             line-height: 1.4;
             margin-top: 0.2rem;
         }}
@@ -242,7 +342,7 @@ def inject_css():
             display: flex;
             align-items: center;
             gap: 0.7rem;
-            padding: 0.2rem 0.25rem 1.5rem 0.25rem;
+            padding: 0.2rem 0.25rem 1.25rem 0.25rem;
         }}
 
         .brand-icon {{
@@ -259,15 +359,59 @@ def inject_css():
 
         .brand-name {{
             color: {COLORS["text"]};
-            font-size: 0.9rem;
+            font-size: 1.2rem;
             font-weight: 700;
             line-height: 1.2;
         }}
 
         .brand-subtitle {{
             color: {COLORS["muted"]};
-            font-size: 0.62rem;
+            font-size: 0.68rem;
             margin-top: 0.15rem;
+        }}
+
+        .sidebar-nav {{
+            border-top: 1px solid {COLORS["border"]};
+            padding-top: 1rem;
+        }}
+
+        .sidebar-nav-heading {{
+            color: {COLORS["muted"]};
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            margin: 0 0 0.55rem 0.25rem;
+            text-transform: uppercase;
+        }}
+
+        .sidebar-nav-item {{
+            align-items: center;
+            border-radius: 8px;
+            color: {COLORS["muted"]};
+            display: flex;
+            font-size: 0.82rem;
+            gap: 0.7rem;
+            margin: 0.15rem 0;
+            min-height: 2.5rem;
+            padding: 0 0.65rem;
+        }}
+
+        .sidebar-nav-item.active {{
+            background: rgba(32,168,224,0.14);
+            color: {COLORS["text"]};
+            font-weight: 650;
+        }}
+
+        .sidebar-nav-icon {{
+            color: {COLORS["muted"]};
+            font-size: 1.05rem;
+            line-height: 1;
+            text-align: center;
+            width: 1.1rem;
+        }}
+
+        .sidebar-nav-item.active .sidebar-nav-icon {{
+            color: {COLORS["cyan"]};
         }}
 
 
@@ -306,7 +450,32 @@ def inject_css():
         }}
 
         button[kind="secondary"] {{
+            background-color: {COLORS["blue"]};
+            border-color: {COLORS["blue"]};
             border-radius: 8px;
+            color: {COLORS["text"]};
+            height: 42px;
+            min-height: 42px;
+        }}
+
+        button[kind="secondary"]:hover {{
+            background-color: {COLORS["cyan"]};
+            border-color: {COLORS["cyan"]};
+            color: {COLORS["text"]};
+        }}
+
+        button[kind="secondary"]:active {{
+            background-color: {COLORS["card_hover"]};
+            border-color: {COLORS["cyan"]};
+            color: {COLORS["text"]};
+        }}
+
+        button[kind="secondary"] p {{
+            color: {COLORS["text"]};
+        }}
+
+        div[data-testid="stButton"] {{
+            padding-top: 1.7rem;
         }}
 
         </style>

@@ -2,7 +2,7 @@ import streamlit as st
 import textwrap
 
 
-def render_sidebar(pages):
+def render_sidebar(active_page="Overview"):
     st.sidebar.markdown(
         textwrap.dedent(
             """
@@ -22,14 +22,36 @@ def render_sidebar(pages):
         unsafe_allow_html=True,
     )
 
-    # Pass the Page objects registered with st.navigation; raw page paths
-    # are not valid links when the app uses the navigation API. Callers may
-    # also pass a single page name, which does not contain link definitions.
-    if isinstance(pages, str):
-        pages = ()
+    navigation_items = (
+        ("Overview", "▦"),
+        ("Airport explorer", "⌕"),
+        ("Data coverage", "◫"),
+        ("About & sources", "ⓘ"),
+    )
+    navigation = []
+    for name, icon in navigation_items:
+        active_class = " active" if name == active_page else ""
+        current_page = ' aria-current="page"' if name == active_page else ""
+        navigation.append(
+            f"""
+            <div class="sidebar-nav-item{active_class}"{current_page}>
+                <span class="sidebar-nav-icon">{icon}</span>
+                <span>{name}</span>
+            </div>
+            """
+        )
 
-    for name, page, icon in pages:
-        st.sidebar.page_link(page, label=name, icon=icon)
+    st.sidebar.markdown(
+        textwrap.dedent(
+            f"""
+            <div class="sidebar-nav" role="navigation" aria-label="Pages">
+                <div class="sidebar-nav-heading">Pages</div>
+                {"".join(navigation)}
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
 
     st.sidebar.markdown(
         textwrap.dedent(

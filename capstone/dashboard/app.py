@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from data import count_regions, load_airports
-from components.styles import inject_css
+from components.styles import COLORS, inject_css
 from components.sidebar import render_sidebar
 from components.header import render_header
 from components.kpi import render_kpi
@@ -67,7 +67,12 @@ region_map_data["airport_count"] = (
 region_map_data["region_label"] = region_map_data["region_name"].str.replace(
     " Region", "", regex=False
 )
-region_color_scale = ["#0D2940", "#20A8E0", "#27C4D9", "#F59E0B"]
+region_color_scale = [
+    COLORS["card"],
+    COLORS["blue"],
+    COLORS["cyan"],
+    COLORS["orange"],
+]
 region_count_range = (0, int(region_map_data["airport_count"].max()))
 airport_type_labels = {
     "large_airport": "Large airport",
@@ -121,8 +126,7 @@ with kpi1:
         title="Total Airports",
         value=f"{total_airports:,}",
         subtitle="in Saudi Arabia",
-        icon="✈",
-        accent="#20A8E0",
+        icon_image="airport_icon.jpg",
     )
 
 
@@ -131,8 +135,7 @@ with kpi2:
         title="Regions Represented",
         value=f"{regions:,}",
         subtitle="administrative regions",
-        icon="●",
-        accent="#21C79A",
+        icon_image="regions_icon.jpg",
     )
 
 
@@ -141,8 +144,7 @@ with kpi3:
         title="Runways",
         value="416",
         subtitle="recorded runways",
-        icon="▰",
-        accent="#8B6FF5",
+        icon_image="runway_icon.jpg",
     )
 
 
@@ -151,8 +153,7 @@ with kpi4:
         title="Navigation Aids",
         value="219",
         subtitle="recorded navaids",
-        icon="◉",
-        accent="#F59E0B",
+        icon_image="navaids_icon.jpg",
     )
 
 
@@ -161,8 +162,7 @@ with kpi5:
         title="Frequencies",
         value="1,028",
         subtitle="recorded frequencies",
-        icon="◉",
-        accent="#E85D9E",
+        icon_image="frequencies_icon.jpg",
     )
 
 
@@ -173,7 +173,7 @@ with kpi5:
 st.markdown("<br>", unsafe_allow_html=True)
 
 filter1, filter2, filter3, filter4 = st.columns(
-    [1.1, 1.1, 1.5, 0.7]
+    [1.1, 1.1, 1.4, 0.95]
 )
 
 
@@ -199,8 +199,6 @@ with filter3:
 
 
 with filter4:
-    st.markdown("<br>", unsafe_allow_html=True)
-
     if st.button(
         "↻ Reset Filters",
         use_container_width=True,
@@ -215,8 +213,9 @@ with filter4:
 st.markdown("<br>", unsafe_allow_html=True)
 
 map_col, region_col, type_col = st.columns(
-    [1.5, 1.25, 0.75]
+    [1.6, 1.25, 1.0]
 )
+dashboard_chart_height = 640
 
 
 # ------------------------------------------
@@ -224,7 +223,7 @@ map_col, region_col, type_col = st.columns(
 # ------------------------------------------
 
 with map_col:
-    with st.container(border=True):
+    with st.container(border=True, key="saudi-region-map-card"):
         render_card_header("Airports by Saudi Region")
         map_data = saudi_airports.dropna(
             subset=["latitude_deg", "longitude_deg"]
@@ -248,19 +247,22 @@ with map_col:
                 lat=map_data["latitude_deg"],
                 lon=map_data["longitude_deg"],
                 mode="markers",
-                marker={"size": 7, "color": "#E85D9E"},
+                marker={"size": 7, "color": COLORS["pink"]},
                 text=map_data["name"].fillna("Airport"),
                 name="Airports",
                 hovertemplate="%{text}<extra></extra>",
             )
         )
         map_figure.update_layout(
-            map_style="carto-positron",
+            map_style="carto-darkmatter",
             map_center={"lat": 24.0, "lon": 45.0},
             map_zoom=2.8,
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
-            height=420,
+            height=dashboard_chart_height,
             coloraxis_colorbar={"title": "Airports"},
+            paper_bgcolor=COLORS["card"],
+            plot_bgcolor=COLORS["card"],
+            font={"color": COLORS["text"]},
         )
         st.plotly_chart(map_figure, width="stretch")
         st.caption("Administrative boundaries: geoBoundaries, ADM1.")
@@ -271,8 +273,8 @@ with map_col:
 # ------------------------------------------
 
 with region_col:
-    with st.container(border=True):
-        render_card_header("Airports by Region")
+    with st.container(border=True, key="airports-by-region-card"):
+        render_card_header("Airports Locations in Saudi Regions")
         region_chart_data = region_map_data.sort_values(
             "airport_count", ascending=True
         )
@@ -289,14 +291,24 @@ with region_col:
             labels={"airport_count": "Airports", "region_label": "Region"},
         )
         region_figure.update_layout(
-            height=420,
+            height=dashboard_chart_height,
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             coloraxis_showscale=False,
             xaxis_title=None,
             yaxis_title=None,
+            paper_bgcolor=COLORS["card"],
+            plot_bgcolor=COLORS["card"],
+            font={"color": COLORS["text"]},
         )
-        region_figure.update_xaxes(showgrid=True, gridcolor="#1B4058")
-        region_figure.update_yaxes(showgrid=False)
+        region_figure.update_xaxes(
+            showgrid=True,
+            gridcolor="#1B4058",
+            tickfont={"color": COLORS["muted"]},
+        )
+        region_figure.update_yaxes(
+            showgrid=False,
+            tickfont={"color": COLORS["text"]},
+        )
         st.plotly_chart(region_figure, width="stretch")
 
 
@@ -305,7 +317,7 @@ with region_col:
 # ------------------------------------------
 
 with type_col:
-    with st.container(border=True):
+    with st.container(border=True, key="airports-by-type-card"):
         render_card_header("Airports by Type")
         type_figure = px.bar(
             type_chart_data,
@@ -320,23 +332,31 @@ with type_col:
             labels={"airport_count": "Airports", "type_label": "Type"},
         )
         type_figure.update_layout(
-            height=420,
+            height=int(dashboard_chart_height * 0.8),
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             coloraxis_showscale=False,
             xaxis_title=None,
             yaxis_title=None,
+            paper_bgcolor=COLORS["card"],
+            plot_bgcolor=COLORS["card"],
+            font={"color": COLORS["text"]},
         )
-        type_figure.update_xaxes(showgrid=True, gridcolor="#1B4058")
-        type_figure.update_yaxes(showgrid=False)
+        type_figure.update_xaxes(
+            showgrid=True,
+            gridcolor="#1B4058",
+            tickfont={"color": COLORS["muted"]},
+        )
+        type_figure.update_yaxes(
+            showgrid=False,
+            tickfont={"color": COLORS["text"]},
+        )
         st.plotly_chart(type_figure, width="stretch")
-
-    st.write("")
 
     render_insight(
         icon="⌁",
-        value=f"{regions} regions represented",
+        value=f"{regions} of {len(region_map_data)} regions",
         description=(
-            "Airport records are currently available across "
-            "Saudi administrative regions."
+            "have airport records in the current data snapshot."
         ),
+        height=int(dashboard_chart_height * 0.25),
     )
