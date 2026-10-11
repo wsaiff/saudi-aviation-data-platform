@@ -6,7 +6,8 @@ The platform follows a robust **ELT (Extract, Load, Transform)** architecture, s
 
 ```mermaid
 graph LR
-    Source[OurAirports Open Data] -->|raw extract (CSV)| Pipeline[Daily Python Batch Pipeline]
-    Pipeline -->|filtered & validated Saudi records| Warehouse[(Local/Cloud Warehouse)]
-    Warehouse -->|dbt & Analytics Models| Dashboard[Streamlit Interactive Dashboard]
-    Stakeholder[Aviation Analysts & Stakeholders] -->|uses & explores| Dashboard
+    Source[OurAirports] -->|raw extract CSV| Pipeline[Python Batch Pipeline]
+    Pipeline -->|validated Saudi records| Warehouse[Warehouse]
+    Warehouse --> dbt[dbt & Analytics]
+    dbt --> Dashboard[Streamlit Dashboard]
+    Stakeholder[Stakeholder] -->|uses| Dashboard
