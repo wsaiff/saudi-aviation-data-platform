@@ -1,42 +1,48 @@
 import streamlit as st
 
 from components.header import render_header
-from data import load_airports
+from data import load_airport_infrastructure
 
 
 render_header(
     title="Airport explorer",
-    subtitle="Search and filter airport records in the Saudi Arabia OurAirports snapshot.",
+    subtitle="Search and filter airport records from the dbt gold layer.",
 )
 
-airports = load_airports()
+airports = load_airport_infrastructure()
 
 filter_region, filter_type = st.columns(2)
 with filter_region:
-    regions = ["All regions", *sorted(airports["iso_region"].dropna().unique())]
-    selected_region = st.selectbox("Region", regions)
+    region_names = ["All regions", *sorted(airports["region_name"].dropna().unique())]
+    selected_region = st.selectbox("Region", region_names)
 with filter_type:
-    types = ["All types", *sorted(airports["type"].dropna().unique())]
+    types = ["All types", *sorted(airports["airport_type"].dropna().unique())]
     selected_type = st.selectbox("Airport type", types)
 
 search = st.text_input(
     "Search airports",
-    placeholder="Search by airport name, municipality, or code",
+    placeholder="Search by airport name, municipality, or identifier",
 )
 
 filtered_airports = airports
 if selected_region != "All regions":
     filtered_airports = filtered_airports.loc[
-        filtered_airports["iso_region"] == selected_region
+        filtered_airports["region_name"] == selected_region
     ]
 if selected_type != "All types":
     filtered_airports = filtered_airports.loc[
-        filtered_airports["type"] == selected_type
+        filtered_airports["airport_type"] == selected_type
     ]
 if search.strip():
     searchable_columns = [
         column
-        for column in ("name", "municipality", "ident", "iata_code", "gps_code")
+        for column in (
+            "airport_name",
+            "municipality",
+            "airport_ident",
+            "icao_code",
+            "iata_code",
+        )
         if column in filtered_airports.columns
     ]
     matches = (
@@ -57,29 +63,39 @@ st.caption(f"Showing {len(filtered_airports):,} of {len(airports):,} airport rec
 display_columns = [
     column
     for column in (
-        "name",
-        "type",
-        "iso_region",
+        "airport_name",
+        "airport_type",
+        "region_name",
+        "region_code",
         "municipality",
         "latitude_deg",
         "longitude_deg",
         "elevation_ft",
+        "airport_ident",
+        "icao_code",
         "iata_code",
-        "gps_code",
+        "runway_count",
+        "frequency_count",
+        "navaid_count",
     )
     if column in filtered_airports.columns
 ]
 display_data = filtered_airports[display_columns].rename(
     columns={
-        "name": "Airport",
-        "type": "Type",
-        "iso_region": "Region",
+        "airport_name": "Airport",
+        "airport_type": "Type",
+        "region_name": "Region",
+        "region_code": "Region code",
         "municipality": "Municipality",
         "latitude_deg": "Latitude",
         "longitude_deg": "Longitude",
         "elevation_ft": "Elevation (ft)",
+        "airport_ident": "Airport identifier",
+        "icao_code": "ICAO",
         "iata_code": "IATA",
-        "gps_code": "GPS code",
+        "runway_count": "Runways",
+        "frequency_count": "Frequencies",
+        "navaid_count": "Navigation aids",
     }
 )
 st.dataframe(
@@ -88,6 +104,9 @@ st.dataframe(
         "Latitude": st.column_config.NumberColumn(format="%.4f"),
         "Longitude": st.column_config.NumberColumn(format="%.4f"),
         "Elevation (ft)": st.column_config.NumberColumn(format="%d"),
+        "Runways": st.column_config.NumberColumn(format="%d"),
+        "Frequencies": st.column_config.NumberColumn(format="%d"),
+        "Navigation aids": st.column_config.NumberColumn(format="%d"),
     },
     hide_index=True,
     width="stretch",

@@ -5,11 +5,12 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from data import count_regions, load_airports
-from components.styles import COLORS
+
+from components.cards import render_card_header, render_insight
 from components.header import render_header
 from components.kpi import render_kpi
-from components.cards import render_insight, render_card_header
+from components.styles import COLORS
+from data import load_airport_infrastructure, load_region_summary
 
 
 @st.cache_data
@@ -18,199 +19,174 @@ def load_region_boundaries():
     return json.loads(boundary_file.read_text(encoding="utf-8"))
 
 
-# ==========================================
-# Temporary Data Loading
-# ==========================================
-
-saudi_airports = load_airports()
+airport_data = load_airport_infrastructure()
+region_summary = load_region_summary()
 region_boundaries = load_region_boundaries()
-region_map_data = pd.DataFrame(
-    [
-        {
-            "iso_region": feature["properties"]["shapeISO"],
-            "region_name": feature["properties"]["shapeName"],
-        }
-        for feature in region_boundaries["features"]
+
+render_header(
+    title="Saudi Arabia Aviation Overview",
+    subtitle=(
+        "Explore airport infrastructure and source-data coverage "
+        "from the dbt gold layer."
+    ),
+)
+
+region_names = (
+    region_summary[["region_code", "region_name"]]
+    .dropna(subset=["region_code"])
+    .drop_duplicates()
+    .sort_values("region_name")
+)
+region_options = ["All Regions", *region_names["region_name"].dropna().tolist()]
+airport_types = sorted(airport_data["airport_type"].dropna().unique().tolist())
+
+
+def reset_overview_filters():
+    for key in (
+        "overview_region",
+        "overview_airport_type",
+        "overview_data_availability",
+    ):
+        st.session_state.pop(key, None)
+
+
+filter1, filter2, filter3, filter4 = st.columns([1.1, 1.1, 1.4, 0.95])
+with filter1:
+    selected_region = st.selectbox("Region", region_options, key="overview_region")
+with filter2:
+    selected_type = st.selectbox(
+        "Airport Type",
+        ["All Types", *airport_types],
+        key="overview_airport_type",
+    )
+with filter3:
+    selected_availability = st.selectbox(
+        "Data Availability",
+        [
+            "All Airports",
+            "With any infrastructure data",
+            "No linked infrastructure data",
+        ],
+        key="overview_data_availability",
+    )
+with filter4:
+    st.button(
+        "↻ Reset Filters",
+        width="stretch",
+        on_click=reset_overview_filters,
+    )
+
+filtered_airports = airport_data
+if selected_region != "All Regions":
+    selected_region_code = region_names.loc[
+        region_names["region_name"] == selected_region, "region_code"
+    ].iloc[0]
+    filtered_airports = filtered_airports.loc[
+        filtered_airports["region_code"] == selected_region_code
     ]
-)
-airport_counts = saudi_airports.groupby("iso_region").size()
-region_map_data["airport_count"] = (
-    region_map_data["iso_region"].map(airport_counts).fillna(0).astype(int)
-)
-region_map_data["region_label"] = region_map_data["region_name"].str.replace(
-    " Region", "", regex=False
-)
+if selected_type != "All Types":
+    filtered_airports = filtered_airports.loc[
+        filtered_airports["airport_type"] == selected_type
+    ]
+if selected_availability != "All Airports":
+    has_any_data = (
+        filtered_airports["has_runway_data"]
+        | filtered_airports["has_frequency_data"]
+        | filtered_airports["has_navaid_data"]
+    )
+    if selected_availability == "With any infrastructure data":
+        filtered_airports = filtered_airports.loc[has_any_data]
+    else:
+        filtered_airports = filtered_airports.loc[~has_any_data]
+
+total_airports = len(filtered_airports)
+regions_represented = filtered_airports["region_code"].nunique()
+total_runways = int(filtered_airports["runway_count"].sum())
+total_navaids = int(filtered_airports["navaid_count"].sum())
+total_frequencies = int(filtered_airports["frequency_count"].sum())
+
+kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+with kpi1:
+    render_kpi(
+        title="Total Airports",
+        value=f"{total_airports:,}",
+        subtitle="in selected view",
+        icon_image="airport_icon.jpg",
+    )
+with kpi2:
+    render_kpi(
+        title="Regions Represented",
+        value=f"{regions_represented:,}",
+        subtitle="administrative regions",
+        icon_image="regions_icon.jpg",
+    )
+with kpi3:
+    render_kpi(
+        title="Runways",
+        value=f"{total_runways:,}",
+        subtitle="linked runway records",
+        icon_image="runway_icon.jpg",
+    )
+with kpi4:
+    render_kpi(
+        title="Navigation Aids",
+        value=f"{total_navaids:,}",
+        subtitle="linked navaid records",
+        icon_image="navaids_icon.jpg",
+    )
+with kpi5:
+    render_kpi(
+        title="Frequencies",
+        value=f"{total_frequencies:,}",
+        subtitle="linked frequency records",
+        icon_image="frequencies_icon.jpg",
+    )
+
+st.markdown("<br>", unsafe_allow_html=True)
+map_col, region_col, type_col = st.columns([1.6, 1.25, 1.0])
+dashboard_chart_height = 640
 region_color_scale = [
     COLORS["card"],
     COLORS["blue"],
     COLORS["cyan"],
     COLORS["orange"],
 ]
-region_count_range = (0, int(region_map_data["airport_count"].max()))
-airport_type_labels = {
-    "large_airport": "Large airport",
-    "medium_airport": "Medium airport",
-    "small_airport": "Small airport",
-    "heliport": "Heliport",
-    "seaplane_base": "Seaplane base",
-    "balloonport": "Balloonport",
-    "closed": "Closed",
-}
-type_chart_data = (
-    saudi_airports["type"]
-    .fillna("unknown")
-    .value_counts()
-    .rename_axis("airport_type")
-    .reset_index(name="airport_count")
+
+airport_counts = (
+    filtered_airports.groupby("region_code")
+    .size()
+    .rename("airport_count")
+    .reset_index()
 )
-type_chart_data["type_label"] = type_chart_data["airport_type"].map(
-    airport_type_labels
-).fillna(type_chart_data["airport_type"].str.replace("_", " ").str.title())
-type_chart_data = type_chart_data.sort_values("airport_count", ascending=True)
-type_count_range = (0, int(type_chart_data["airport_count"].max()))
-
-# ==========================================
-# Header
-# ==========================================
-
-render_header(
-    title="Saudi Arabia Aviation Overview",
-    subtitle=(
-        "Explore airport infrastructure, regional distribution, "
-        "and data coverage from OurAirports."
-    ),
+region_map_data = (
+    region_summary[["region_code", "region_name"]]
+    .drop_duplicates()
+    .merge(airport_counts, on="region_code", how="left")
 )
-
-
-# ==========================================
-# KPIs
-# ==========================================
-
-total_airports = len(saudi_airports)
-
-regions = count_regions(saudi_airports)
-
-
-kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
-
-
-with kpi1:
-    render_kpi(
-        title="Total Airports",
-        value=f"{total_airports:,}",
-        subtitle="in Saudi Arabia",
-        icon_image="airport_icon.jpg",
-    )
-
-
-with kpi2:
-    render_kpi(
-        title="Regions Represented",
-        value=f"{regions:,}",
-        subtitle="administrative regions",
-        icon_image="regions_icon.jpg",
-    )
-
-
-with kpi3:
-    render_kpi(
-        title="Runways",
-        value="416",
-        subtitle="recorded runways",
-        icon_image="runway_icon.jpg",
-    )
-
-
-with kpi4:
-    render_kpi(
-        title="Navigation Aids",
-        value="219",
-        subtitle="recorded navaids",
-        icon_image="navaids_icon.jpg",
-    )
-
-
-with kpi5:
-    render_kpi(
-        title="Frequencies",
-        value="1,028",
-        subtitle="recorded frequencies",
-        icon_image="frequencies_icon.jpg",
-    )
-
-
-# ==========================================
-# Filters
-# ==========================================
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-filter1, filter2, filter3, filter4 = st.columns(
-    [1.1, 1.1, 1.4, 0.95]
+region_map_data["airport_count"] = (
+    region_map_data["airport_count"].fillna(0).astype(int)
 )
-
-
-with filter1:
-    region = st.selectbox(
-        "Region",
-        ["All Regions"],
-    )
-
-
-with filter2:
-    airport_type = st.selectbox(
-        "Airport Type",
-        ["All Types"],
-    )
-
-
-with filter3:
-    data_availability = st.selectbox(
-        "Data Availability",
-        ["All Airports"],
-    )
-
-
-with filter4:
-    if st.button(
-        "↻ Reset Filters",
-        use_container_width=True,
-    ):
-        st.rerun()
-
-
-# ==========================================
-# Main dashboard
-# ==========================================
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-map_col, region_col, type_col = st.columns(
-    [1.6, 1.25, 1.0]
+region_map_data["region_label"] = region_map_data["region_name"].str.replace(
+    " Region", "", regex=False
 )
-dashboard_chart_height = 640
-
-
-# ------------------------------------------
-# Map (TEMPORARY)
-# ------------------------------------------
+region_count_range = (0, max(1, int(region_map_data["airport_count"].max())))
 
 with map_col:
     with st.container(border=True, key="saudi-region-map-card"):
         render_card_header("Airports by Saudi Region")
-        map_data = saudi_airports.dropna(
+        map_data = filtered_airports.dropna(
             subset=["latitude_deg", "longitude_deg"]
         )
         map_figure = px.choropleth_map(
             region_map_data,
             geojson=region_boundaries,
-            locations="iso_region",
+            locations="region_code",
             featureidkey="properties.shapeISO",
             color="airport_count",
             color_continuous_scale=region_color_scale,
             range_color=region_count_range,
             hover_name="region_name",
-            hover_data={"iso_region": True, "airport_count": True},
+            hover_data={"region_code": True, "airport_count": True},
             center={"lat": 24.0, "lon": 45.0},
             zoom=2.8,
             opacity=0.7,
@@ -221,7 +197,7 @@ with map_col:
                 lon=map_data["longitude_deg"],
                 mode="markers",
                 marker={"size": 7, "color": COLORS["pink"]},
-                text=map_data["name"].fillna("Airport"),
+                text=map_data["airport_name"].fillna("Airport"),
                 name="Airports",
                 hovertemplate="%{text}<extra></extra>",
             )
@@ -240,11 +216,6 @@ with map_col:
         st.plotly_chart(map_figure, width="stretch")
         st.caption("Administrative boundaries: geoBoundaries, ADM1.")
 
-
-# ------------------------------------------
-# Airports by Region (TEMPORARY)
-# ------------------------------------------
-
 with region_col:
     with st.container(border=True, key="airports-by-region-card"):
         render_card_header("Airports Locations in Saudi Regions")
@@ -260,7 +231,7 @@ with region_col:
             color_continuous_scale=region_color_scale,
             range_color=region_count_range,
             hover_name="region_name",
-            hover_data={"iso_region": True, "airport_count": True},
+            hover_data={"region_code": True, "airport_count": True},
             labels={"airport_count": "Airports", "region_label": "Region"},
         )
         region_figure.update_layout(
@@ -284,10 +255,23 @@ with region_col:
         )
         st.plotly_chart(region_figure, width="stretch")
 
-
-# ------------------------------------------
-# Airport Type + Insight (TEMPORARY)
-# ------------------------------------------
+type_chart_data = (
+    filtered_airports["airport_type"]
+    .fillna("unknown")
+    .value_counts()
+    .rename_axis("airport_type")
+    .reset_index(name="airport_count")
+)
+type_chart_data["type_label"] = type_chart_data["airport_type"].str.replace(
+    "_", " "
+).str.title()
+type_chart_data = type_chart_data.sort_values("airport_count", ascending=True)
+type_count_range = (
+    0,
+    max(1, int(type_chart_data["airport_count"].max()))
+    if not type_chart_data.empty
+    else 1,
+)
 
 with type_col:
     with st.container(border=True, key="airports-by-type-card"):
@@ -327,9 +311,7 @@ with type_col:
 
     render_insight(
         icon="⌁",
-        value=f"{regions} of {len(region_map_data)} regions",
-        description=(
-            "have airport records in the current data snapshot."
-        ),
+        value=f"{regions_represented} of {len(region_summary)} regions",
+        description="have airport records in the selected view.",
         height=int(dashboard_chart_height * 0.25),
     )
