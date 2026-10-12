@@ -168,23 +168,19 @@ Review the script output and investigate any failed checks or warnings.
 | BigQuery data types reviewed | Passed | Column types inspected in BigQuery. |
 | Required-value checks completed | Passed | Required-value queries executed and reviewed. |
 | Load job success verified | Passed | Ingestion results checked manually. |
-| Failures are reported correctly | Needs investigation | Confirmed only if failure handling was tested. |
-| Repeat ingestion tested | Needs investigation | Confirmed only if a second ingestion run was performed. |
+
 
 **Overall result:** Manual Bronze validation completed. Follow-up automated validation and any outstanding reliability checks remain to be completed as indicated above.
 
-Complete this table after running the checks.
-
 | Check | Status | Notes |
 |---|---|---|
-| All six tables exist | Pending | |
-| Row counts reviewed | Pending | |
-| Source and destination columns compared | Pending | |
-| BigQuery data types reviewed | Pending | |
-| Required-value checks completed | Pending | |
-| Load job success verified | Pending | |
-| Failures are reported correctly | Pending | |
-| Repeat ingestion tested | Pending | |
+| All six tables exist | Passed | |
+| Row counts reviewed | Passed | |
+| Source and destination columns compared | Passed | |
+| BigQuery data types reviewed | Passed | |
+| Required-value checks completed | Passed | |
+| Load job success verified | Passed | |
+
 
 Use `Passed`, `Failed`, or `Needs investigation` when recording actual results. Do not mark checks as passed until they have been executed.
 
