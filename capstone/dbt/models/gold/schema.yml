@@ -1,0 +1,167 @@
+
+version: 2
+
+models:
+  - name: airport_infrastructure
+    description: >
+      Airport-level analytical dataset combining Saudi airport
+      information with runway, communication frequency, and
+      navigation aid records. Coverage indicators represent
+      the availability of linked source data, not the confirmed
+      existence or absence of physical infrastructure.
+
+    columns:
+      - name: airport_id
+        description: "Unique numeric airport identifier from OurAirports."
+
+      - name: airport_ident
+        description: "Original airport identifier used to link infrastructure records."
+        data_tests: [unique, not_null]
+
+      - name: airport_name
+        description: "Airport name as recorded in OurAirports."
+
+      - name: airport_type
+        description: "Airport classification provided by OurAirports."
+
+      - name: latitude_deg
+        description: "Airport latitude in decimal degrees."
+
+      - name: longitude_deg
+        description: "Airport longitude in decimal degrees."
+
+      - name: elevation_ft
+        description: "Airport elevation in feet, when available."
+
+      - name: region_code
+        description: "Saudi administrative region code."
+
+      - name: region_name
+        description: "Standardized Saudi administrative region name."
+
+      - name: municipality
+        description: "Municipality associated with the airport, when available."
+
+      - name: has_scheduled_service
+        description: "Whether scheduled passenger service is reported in the source."
+
+      - name: is_closed
+        description: "True when the airport is classified as closed."
+
+      - name: is_heliport
+        description: "True when the airport is classified as a heliport."
+
+      - name: is_core
+        description: "True for airports that are neither heliports nor closed."
+
+      - name: runway_count
+        description: "Number of runway records linked to the airport."
+
+      - name: longest_runway_ft
+        description: "Maximum reported runway length in feet. NULL when no length is available."
+
+      - name: runway_surfaces
+        description: "Distinct standardized runway surface categories associated with the airport."
+
+      - name: frequency_count
+        description: "Number of communication frequency records linked to the airport."
+
+      - name: navaid_count
+        description: "Number of navigation aid records explicitly associated with the airport."
+
+      - name: has_runway_data
+        description: "True when at least one runway record is linked to the airport."
+
+      - name: has_frequency_data
+        description: "True when at least one communication frequency record is linked to the airport."
+
+      - name: has_navaid_data
+        description: "True when at least one navigation aid record is linked to the airport."
+
+      - name: data_completeness_score
+        description: >
+          Source data coverage score from 0 to 3, calculated
+          as the sum of the three infrastructure data flags.
+          It is not an airport quality, safety, or infrastructure rating.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3]
+                quote: false
+
+  - name: region_summary
+    description: >
+      Regional summary of Saudi airport records and linked
+      infrastructure data. Includes regions with no linked
+      airport records.
+
+    columns:
+      - name: region_code
+        description: "Unique Saudi administrative region code."
+        data_tests: [unique, not_null]
+
+      - name: region_name
+        description: "Standardized region name."
+
+      - name: total_airports
+        description: "Number of airport records associated with the region."
+
+      - name: core_airports
+        description: "Number of airports excluding heliports and closed airports."
+
+      - name: heliports
+        description: "Number of airport records classified as heliports."
+
+      - name: closed_airports
+        description: "Number of airport records classified as closed."
+
+      - name: airports_with_runways
+        description: "Number of airports with at least one linked runway record."
+
+      - name: airports_with_frequencies
+        description: "Number of airports with at least one linked communication frequency record."
+
+      - name: airports_with_navaids
+        description: "Number of airports with at least one linked navigation aid record."
+
+      - name: total_runways
+        description: "Total number of linked runway records across airports in the region."
+
+  - name: coverage_summary
+    description: >
+      Summary of linked infrastructure data coverage by
+      airport type and overall airport segments.
+      Percentages use the number of airports in each segment
+      as the denominator. Missing linked records do not
+      establish that infrastructure is physically absent.
+
+    columns:
+      - name: segment_group
+        description: "Grouping level, such as By type or Overall."
+        data_tests: [not_null]
+
+      - name: segment
+        description: "Airport type or overall segment label."
+        data_tests: [not_null]
+
+      - name: airports
+        description: "Total number of airports in the segment."
+
+      - name: with_runways
+        description: "Number of airports with linked runway data."
+
+      - name: with_frequencies
+        description: "Number of airports with linked communication frequency data."
+
+      - name: with_navaids
+        description: "Number of airports with linked navigation aid data."
+
+      - name: pct_runways
+        description: "Percentage of airports in the segment with linked runway records."
+
+      - name: pct_frequencies
+        description: "Percentage of airports in the segment with linked communication frequency records."
+
+      - name: pct_navaids
+        description: "Percentage of airports in the segment with linked navigation aid records."

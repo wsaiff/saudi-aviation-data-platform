@@ -1,0 +1,48 @@
+
+version: 2
+
+sources:
+  - name: bronze
+    description: >
+      Raw aviation infrastructure datasets ingested from OurAirports
+      into BigQuery. These source tables contain global records,
+      while the Silver models filter and prepare Saudi Arabian data
+      for analysis.
+
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: bronze
+
+    tables:
+      - name: airports
+        description: >
+          Raw airport records from OurAirports, including airport
+          identifiers, classifications, geographic coordinates,
+          administrative regions, and operational information.
+
+      - name: runways
+        description: >
+          Raw runway records associated with airports, including
+          runway dimensions, surface types, lighting, and closure
+          indicators.
+
+      - name: navaids
+        description: >
+          Raw navigation aid records, including navigation aid
+          types, frequencies, geographic coordinates, and optional
+          airport associations.
+
+      - name: frequencies
+        description: >
+          Raw airport communication frequency records, including
+          airport identifiers, communication service types,
+          descriptions, and reported frequencies.
+
+      - name: regions
+        description: >
+          Raw administrative region reference data used to enrich
+          airport records with region names and codes.
+
+      - name: countries
+        description: >
+          Raw country reference data used to associate airport
+          country codes with country names.
