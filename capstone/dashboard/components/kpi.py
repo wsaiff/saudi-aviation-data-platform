@@ -1,4 +1,5 @@
 import base64
+from html import escape
 import io
 from pathlib import Path
 import textwrap
@@ -23,23 +24,37 @@ def render_kpi(
     title,
     value,
     subtitle,
-    icon_image,
+    icon_image=None,
+    centered=False,
+    large_value=False,
 ):
-    icon_data = _load_icon_data(icon_image)
-    st.markdown(
-        textwrap.dedent(f"""
-        <div class="kpi-card">
+    icon_html = ""
+    card_class = "kpi-card kpi-card-text"
+    if icon_image:
+        icon_data = _load_icon_data(icon_image)
+        icon_html = f"""
             <img
                 class="kpi-icon"
                 src="data:image/webp;base64,{icon_data}"
-                alt="{title} icon"
+                alt="{escape(title)} icon"
             >
+        """
+        card_class = "kpi-card"
+
+    if centered:
+        card_class += " kpi-card-centered"
+    if large_value:
+        card_class += " kpi-card-large-value"
+
+    st.html(
+        textwrap.dedent(f"""
+        <div class="{card_class}">
+            {icon_html}
             <div class="kpi-content">
-                <div class="kpi-title">{title}</div>
-                <div class="kpi-value">{value}</div>
-                <div class="kpi-subtitle">{subtitle}</div>
+                <div class="kpi-title">{escape(title)}</div>
+                <div class="kpi-value">{escape(str(value))}</div>
+                <div class="kpi-subtitle">{escape(subtitle)}</div>
             </div>
         </div>
-        """),
-        unsafe_allow_html=True,
+        """)
     )

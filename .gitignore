@@ -1,1 +1,3 @@
 .venv/
+# Keep local Streamlit and other secrets files out of Git.
+secrets.toml
