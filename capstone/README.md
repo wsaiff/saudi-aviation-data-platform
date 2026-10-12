@@ -17,4 +17,9 @@ The Streamlit dashboard entry point is `capstone/dashboard/app.py`. Run it from 
 streamlit run capstone/dashboard/app.py
 ```
 
-The Overview, Airport explorer, Data coverage, and About & sources pages are in `capstone/dashboard/pages/`.
+The Overview, Airport explorer, Data coverage, and About & sources pages are in `capstone/dashboard/pages/`. Dashboard data is read from the dbt gold models in BigQuery (`airport_infrastructure`, `region_summary`, and `coverage_summary`); it no longer reads the live OurAirports CSV directly.
+
+### Dashboard configuration
+Configure `GCP_PROJECT_ID`, `GCP_LOCATION` (defaults to `EU`), and `GOLD_DATASET` (defaults to `gold`) as environment variables or Streamlit secrets. Local development can use Google Application Default Credentials. For Streamlit Community Cloud, add a `gcp_service_account` section to the app's secrets and provide a service account authorized to create BigQuery query jobs and read the gold dataset. Do not commit credentials or a `secrets.toml` file.
+
+Dashboard query results are cached for 15 minutes. Re-run the dbt gold models to publish updated data; the dashboard will pick up those updates when its cache expires.

@@ -20,10 +20,7 @@ st.write(
     "Airport records are imported from OurAirports. The dataset snapshot shown "
     "in this dashboard was loaded on 11 October 2026."
 )
-st.markdown(
-    "[OurAirports data](https://ourairports.com/data/) · "
-    "[Airport data CSV](https://davidmegginson.github.io/ourairports-data/airports.csv)"
-)
+st.markdown("[OurAirports data](https://ourairports.com/data/)")
 
 st.subheader("How to interpret coverage")
 st.info(

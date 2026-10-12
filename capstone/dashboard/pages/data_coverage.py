@@ -1,117 +1,208 @@
-import pandas as pd
+from html import escape
+
 import streamlit as st
 
 from components.header import render_header
-from data import load_airports
+from data import (
+    load_airport_infrastructure,
+    load_coverage_summary,
+    load_region_summary,
+)
 
 
 render_header(
     title="Data coverage",
-    subtitle="Review completeness across the airport attributes in the current source snapshot.",
+    subtitle="Review linked infrastructure-data coverage from the dbt gold layer.",
 )
 
-airports = load_airports()
-
-coverage_fields = {
-    "Airport name": "name",
-    "Airport type": "type",
-    "Region code": "iso_region",
-    "Municipality": "municipality",
-    "Elevation": "elevation_ft",
-    "IATA code": "iata_code",
-    "GPS code": "gps_code",
-}
-coverage_rows = []
-for label, column in coverage_fields.items():
-    present = (
-        airports[column].notna()
-        & airports[column].astype("string").str.strip().ne("")
-    )
-    available = int(present.sum())
-    coverage_rows.append(
-        {
-            "Attribute": label,
-            "Records available": available,
-            "Records missing": len(airports) - available,
-            "Coverage (%)": (
-                100 * available / len(airports) if len(airports) else 0
-            ),
-        }
-    )
-
-coordinates_present = airports["latitude_deg"].notna() & airports[
-    "longitude_deg"
-].notna()
-coordinate_count = int(coordinates_present.sum())
-coverage_rows.insert(
-    4,
-    {
-        "Attribute": "Coordinates",
-        "Records available": coordinate_count,
-        "Records missing": len(airports) - coordinate_count,
-        "Coverage (%)": (
-            100 * coordinate_count / len(airports) if len(airports) else 0
-        ),
-    },
-)
+coverage = load_coverage_summary()
+regions = load_region_summary()
+airports = load_airport_infrastructure()
+overall_coverage = coverage.loc[coverage["segment_group"] == "Overall"]
+all_airports_rows = overall_coverage.loc[
+    overall_coverage["segment"] == "All airports"
+]
+if all_airports_rows.empty:
+    raise ValueError("The dbt coverage_summary model has no All airports row.")
+all_airports = all_airports_rows.iloc[0]
 metric_columns = st.columns(3)
-metric_columns[0].metric("Airport records", f"{len(airports):,}")
+metric_columns[0].metric("Airport records", f"{int(all_airports['airports']):,}")
 metric_columns[1].metric(
-    "Records with coordinates",
-    f"{coordinate_count:,}",
+    "Airports with runway data",
+    f"{int(all_airports['with_runways']):,}",
 )
 metric_columns[2].metric(
-    "Records without coordinates",
-    f"{len(airports) - coordinate_count:,}",
+    "Airports with frequency data",
+    f"{int(all_airports['with_frequencies']):,}",
 )
 
-st.subheader("Attribute completeness")
-coverage_table = pd.DataFrame(coverage_rows)
-st.dataframe(
-    coverage_table,
-    column_config={
-        "Coverage (%)": st.column_config.ProgressColumn(
-            format="%.1f%%", min_value=0, max_value=100
-        )
-    },
-    hide_index=True,
-    width="stretch",
+complete_data = (
+    airports["has_runway_data"].fillna(False).astype(bool)
+    & airports["has_navaid_data"].fillna(False).astype(bool)
+    & airports["has_frequency_data"].fillna(False).astype(bool)
 )
-
-st.subheader("Coordinate coverage by region")
+complete_by_region = (
+    airports.assign(complete_data=complete_data)
+    .groupby("region_code", dropna=False)["complete_data"]
+    .sum()
+    .rename("complete_airports")
+)
 region_coverage = (
-    airports.assign(
-        has_coordinates=airports["latitude_deg"].notna()
-        & airports["longitude_deg"].notna()
+    regions[
+        [
+            "region_code",
+            "region_name",
+            "total_airports",
+            "airports_with_runways",
+            "airports_with_navaids",
+            "airports_with_frequencies",
+        ]
+    ]
+    .merge(complete_by_region, on="region_code", how="left")
+    .fillna({"complete_airports": 0})
+    .sort_values("total_airports", ascending=False)
+)
+
+def availability_cell(available, total, label, color):
+    percentage = 100 * available / total if total else 0
+    percentage = min(max(percentage, 0), 100)
+    return (
+        f'<div class="availability-cell">'
+        f'<div class="availability-track" role="progressbar" '
+        f'aria-label="{escape(label)}" aria-valuemin="0" '
+        f'aria-valuemax="100" aria-valuenow="{percentage:.1f}">'
+        f'<div class="availability-fill" style="width:{percentage:.1f}%;'
+        f'background:{color};"></div></div>'
+        f'<span class="availability-percent">{percentage:.1f}%</span>'
+        f"</div>"
     )
-    .groupby("iso_region", dropna=False)
-    .agg(
-        **{
-            "Airport records": ("iso_region", "size"),
-            "Records with coordinates": ("has_coordinates", "sum"),
-        }
+
+
+st.subheader("Data Availability by Region")
+progress_colors = {
+    "runways": "linear-gradient(90deg, #20A8E0, #27C4D9)",
+    "navaids": "#F59E0B",
+    "frequencies": "#8B6FF5",
+    "complete": "linear-gradient(90deg, #F59E0B, #FBBF24)",
+}
+table_rows = []
+for row in region_coverage.itertuples(index=False):
+    total = int(row.total_airports)
+    table_rows.append(
+        "<tr>"
+        f'<th scope="row">{escape(str(row.region_name))}</th>'
+        f'<td class="availability-count">{total:,}</td>'
+        f'<td>{availability_cell(int(row.airports_with_runways), total, "Runway data", progress_colors["runways"])}</td>'
+        f'<td>{availability_cell(int(row.airports_with_navaids), total, "Navaid data", progress_colors["navaids"])}</td>'
+        f'<td>{availability_cell(int(row.airports_with_frequencies), total, "Frequency data", progress_colors["frequencies"])}</td>'
+        f'<td>{availability_cell(int(row.complete_airports), total, "Complete data", progress_colors["complete"])}</td>'
+        "</tr>"
     )
-    .reset_index()
-    .rename(columns={"iso_region": "Region"})
+
+st.html(
+    """
+    <style>
+    .availability-table-wrap {
+        overflow-x: auto;
+        border: 1px solid #1B4058;
+        border-radius: 12px;
+        background: #0D2940;
+    }
+    .availability-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+        color: #F5F7FA;
+        font: 0.85rem Inter, Arial, sans-serif;
+    }
+    .availability-table th,
+    .availability-table td {
+        padding: 0.8rem 0.9rem;
+        border-bottom: 1px solid #1B4058;
+        text-align: left;
+    }
+    .availability-table thead th {
+        color: #9BAEC0;
+        font-size: 0.72rem;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+    .availability-table tbody tr:last-child th,
+    .availability-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+    .availability-table tbody th {
+        font-weight: 550;
+    }
+    .availability-count {
+        text-align: right !important;
+        font-variant-numeric: tabular-nums;
+    }
+    .availability-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        min-width: 145px;
+    }
+    .availability-track {
+        height: 0.55rem;
+        flex: 1;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #071827;
+    }
+    .availability-fill {
+        height: 100%;
+        border-radius: inherit;
+    }
+    .availability-percent {
+        width: 3.4rem;
+        color: #DCE7F0;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+    </style>
+    <div class="availability-table-wrap">
+      <table class="availability-table">
+        <thead>
+          <tr>
+            <th scope="col">Region</th>
+            <th scope="col" style="text-align:right">Airports</th>
+            <th scope="col">Runway Data</th>
+            <th scope="col">Navaid Data</th>
+            <th scope="col">Frequency Data</th>
+            <th scope="col">Complete Data</th>
+          </tr>
+        </thead>
+        <tbody>
+    """
+    + "".join(table_rows)
+    + """
+        </tbody>
+      </table>
+    </div>
+    """
 )
-region_coverage["Region"] = region_coverage["Region"].fillna("Unassigned")
-region_coverage["Coordinate coverage (%)"] = (
-    100
-    * region_coverage["Records with coordinates"]
-    / region_coverage["Airport records"]
+
+st.subheader("Coverage by airport type")
+type_coverage = coverage.loc[coverage["segment_group"] == "By type"].copy()
+type_coverage = type_coverage.rename(
+    columns={
+        "segment": "Airport type",
+        "airports": "Airports",
+        "with_runways": "With runway data",
+        "with_frequencies": "With frequency data",
+        "with_navaids": "With navigation-aid data",
+        "pct_runways": "Runway coverage (%)",
+        "pct_frequencies": "Frequency coverage (%)",
+        "pct_navaids": "Navigation-aid coverage (%)",
+    }
 )
-st.dataframe(
-    region_coverage.sort_values("Airport records", ascending=False),
-    column_config={
-        "Coordinate coverage (%)": st.column_config.ProgressColumn(
-            format="%.1f%%", min_value=0, max_value=100
-        )
-    },
-    hide_index=True,
-    width="stretch",
-)
+type_coverage = type_coverage.drop(columns=["segment_group"])
+st.dataframe(type_coverage, hide_index=True, width="stretch")
 
 st.info(
-    "This page measures completeness in the imported airport records only. "
+    "Coverage measures whether linked runway, frequency, or navigation-aid records "
+    "are present in the source data. "
     "Missing data does not always mean missing infrastructure."
 )
