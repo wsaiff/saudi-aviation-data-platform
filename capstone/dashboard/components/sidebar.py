@@ -2,7 +2,7 @@ import streamlit as st
 import textwrap
 
 
-def render_sidebar(active_page="Overview"):
+def render_sidebar(pages):
     st.sidebar.markdown(
         textwrap.dedent(
             """
@@ -22,36 +22,9 @@ def render_sidebar(active_page="Overview"):
         unsafe_allow_html=True,
     )
 
-    navigation_items = (
-        ("Overview", "▦"),
-        ("Airport explorer", "⌕"),
-        ("Data coverage", "◫"),
-        ("About & sources", "ⓘ"),
-    )
-    navigation = []
-    for name, icon in navigation_items:
-        active_class = " active" if name == active_page else ""
-        current_page = ' aria-current="page"' if name == active_page else ""
-        navigation.append(
-            f"""
-            <div class="sidebar-nav-item{active_class}"{current_page}>
-                <span class="sidebar-nav-icon">{icon}</span>
-                <span>{name}</span>
-            </div>
-            """
-        )
-
-    st.sidebar.markdown(
-        textwrap.dedent(
-            f"""
-            <div class="sidebar-nav" role="navigation" aria-label="Pages">
-                <div class="sidebar-nav-heading">Pages</div>
-                {"".join(navigation)}
-            </div>
-            """
-        ),
-        unsafe_allow_html=True,
-    )
+    st.sidebar.markdown("Pages")
+    for name, page in pages.items():
+        st.sidebar.page_link(page, label=name, icon=page.icon, width="stretch")
 
     st.sidebar.markdown(
         textwrap.dedent(
@@ -62,8 +35,8 @@ def render_sidebar(active_page="Overview"):
                 </div>
                 <div class="source-text">
                     OurAirports<br>
-                    Fixed snapshot<br>
-                    8 October 2026
+                    Snapshot loaded<br>
+                    11 October 2026
                 </div>
             </div>
             """
