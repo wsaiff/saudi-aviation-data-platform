@@ -1,12 +1,12 @@
 import json
 from pathlib import Path
+from html import escape
 
-import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from components.cards import render_card_header, render_insight
+from components.cards import render_card_header
 from components.header import render_header
 from components.kpi import render_kpi
 from components.styles import COLORS
@@ -55,9 +55,7 @@ with filter1:
     selected_region = st.selectbox("Region", region_options, key="overview_region")
 with filter2:
     selected_type = st.selectbox(
-        "Airport Type",
-        ["All Types", *airport_types],
-        key="overview_airport_type",
+        "Airport Type", ["All Types", *airport_types], key="overview_airport_type"
     )
 with filter3:
     selected_availability = st.selectbox(
@@ -70,11 +68,7 @@ with filter3:
         key="overview_data_availability",
     )
 with filter4:
-    st.button(
-        "↻ Reset Filters",
-        width="stretch",
-        on_click=reset_overview_filters,
-    )
+    st.button("↻ Reset Filters", width="stretch", on_click=reset_overview_filters)
 
 filtered_airports = airport_data
 if selected_region != "All Regions":
@@ -108,55 +102,43 @@ total_frequencies = int(filtered_airports["frequency_count"].sum())
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 with kpi1:
     render_kpi(
-        title="Total Airports",
-        value=f"{total_airports:,}",
-        subtitle="in selected view",
-        icon_image="airport_icon.jpg",
+        title="Total Airports", value=f"{total_airports:,}",
+        subtitle="in selected view", icon_image="airport_icon.jpg",
     )
 with kpi2:
     render_kpi(
-        title="Regions Represented",
-        value=f"{regions_represented:,}",
-        subtitle="administrative regions",
-        icon_image="regions_icon.jpg",
+        title="Regions Represented", value=f"{regions_represented:,}",
+        subtitle="administrative regions", icon_image="regions_icon.jpg",
     )
 with kpi3:
     render_kpi(
-        title="Runways",
-        value=f"{total_runways:,}",
-        subtitle="linked runway records",
-        icon_image="runway_icon.jpg",
+        title="Runways", value=f"{total_runways:,}",
+        subtitle="linked runway records", icon_image="runway_icon.jpg",
     )
 with kpi4:
     render_kpi(
-        title="Navigation Aids",
-        value=f"{total_navaids:,}",
-        subtitle="linked navaid records",
-        icon_image="navaids_icon.jpg",
+        title="Navigation Aids", value=f"{total_navaids:,}",
+        subtitle="linked navaid records", icon_image="navaids_icon.jpg",
     )
 with kpi5:
     render_kpi(
-        title="Frequencies",
-        value=f"{total_frequencies:,}",
-        subtitle="linked frequency records",
-        icon_image="frequencies_icon.jpg",
+        title="Frequencies", value=f"{total_frequencies:,}",
+        subtitle="linked frequency records", icon_image="frequencies_icon.jpg",
     )
 
+# Shared dimensions keep each row aligned.
 st.markdown("<br>", unsafe_allow_html=True)
-map_col, region_col, type_col = st.columns([1.6, 1.25, 1.0])
-dashboard_chart_height = 640
+TOP_CARD_HEIGHT = 430
+BOTTOM_CARD_HEIGHT = 275
+TOP_CHART_HEIGHT = 340
+
 region_color_scale = [
-    COLORS["card"],
-    COLORS["blue"],
-    COLORS["cyan"],
-    COLORS["orange"],
+    COLORS["card"], COLORS["blue"], COLORS["cyan"], COLORS["orange"]
 ]
 
 airport_counts = (
     filtered_airports.groupby("region_code")
-    .size()
-    .rename("airport_count")
-    .reset_index()
+    .size().rename("airport_count").reset_index()
 )
 region_map_data = (
     region_summary[["region_code", "region_name"]]
@@ -171,8 +153,10 @@ region_map_data["region_label"] = region_map_data["region_name"].str.replace(
 )
 region_count_range = (0, max(1, int(region_map_data["airport_count"].max())))
 
+# ROW 1: Map and region bars
+map_col, region_col = st.columns([1, 1], gap="medium")
 with map_col:
-    with st.container(border=True, key="saudi-region-map-card"):
+    with st.container(border=True, key="saudi-region-map-card", height=TOP_CARD_HEIGHT):
         render_card_header("Airports by Saudi Region")
         map_data = filtered_airports.dropna(
             subset=["latitude_deg", "longitude_deg"]
@@ -188,7 +172,7 @@ with map_col:
             hover_name="region_name",
             hover_data={"region_code": True, "airport_count": True},
             center={"lat": 24.0, "lon": 45.0},
-            zoom=2.8,
+            zoom=3.7,
             opacity=0.7,
         )
         map_figure.add_trace(
@@ -196,7 +180,7 @@ with map_col:
                 lat=map_data["latitude_deg"],
                 lon=map_data["longitude_deg"],
                 mode="markers",
-                marker={"size": 7, "color": COLORS["pink"]},
+                marker={"size": 6, "color": COLORS["pink"]},
                 text=map_data["airport_name"].fillna("Airport"),
                 name="Airports",
                 hovertemplate="%{text}<extra></extra>",
@@ -205,10 +189,10 @@ with map_col:
         map_figure.update_layout(
             map_style="carto-darkmatter",
             map_center={"lat": 24.0, "lon": 45.0},
-            map_zoom=2.8,
+            map_zoom=3.7,
+            height=TOP_CHART_HEIGHT,
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
-            height=dashboard_chart_height,
-            coloraxis_colorbar={"title": "Airports"},
+            coloraxis_colorbar={"title": "Airports", "thickness": 10},
             paper_bgcolor=COLORS["card"],
             plot_bgcolor=COLORS["card"],
             font={"color": COLORS["text"]},
@@ -217,44 +201,62 @@ with map_col:
         st.caption("Administrative boundaries: geoBoundaries, ADM1.")
 
 with region_col:
-    with st.container(border=True, key="airports-by-region-card"):
+    with st.container(border=True, key="airports-by-region-card", height=TOP_CARD_HEIGHT):
         render_card_header("Airports Locations in Saudi Regions")
         region_chart_data = region_map_data.sort_values(
             "airport_count", ascending=True
         )
+        # Distinct, bright categorical colors (not a numeric gradient).
+        # Use descending counts for the reference palette, then retain the
+        # original ascending display order for the horizontal bar chart.
+        region_palette = [
+            "#F59E0B",  # Orange
+            "#83B879",  # Green
+            "#20A8E0",  # Blue
+            "#27C4D9",  # Cyan
+            "#A855F7",  # Purple
+            "#E85D9E",  # Pink
+            "#94A3B8",  # Slate
+        ]
+        ranked_regions = region_chart_data.sort_values(
+            ["airport_count", "region_label"], ascending=[False, True]
+        )
+        region_color_map = {
+            str(name): region_palette[i % len(region_palette)]
+            for i, name in enumerate(ranked_regions["region_label"])
+        }
         region_figure = px.bar(
             region_chart_data,
-            x="airport_count",
-            y="region_label",
-            orientation="h",
-            color="airport_count",
-            color_continuous_scale=region_color_scale,
-            range_color=region_count_range,
+            x="airport_count", y="region_label", orientation="h",
+            color="region_label",
+            color_discrete_map=region_color_map,
             hover_name="region_name",
             hover_data={"region_code": True, "airport_count": True},
             labels={"airport_count": "Airports", "region_label": "Region"},
         )
         region_figure.update_layout(
-            height=dashboard_chart_height,
-            margin={"r": 0, "t": 0, "l": 0, "b": 0},
-            coloraxis_showscale=False,
-            xaxis_title=None,
-            yaxis_title=None,
+            height=TOP_CHART_HEIGHT,
+            margin={"r": 15, "t": 5, "l": 0, "b": 10},
+            showlegend=False,
+            xaxis_title=None, yaxis_title=None,
             paper_bgcolor=COLORS["card"],
             plot_bgcolor=COLORS["card"],
             font={"color": COLORS["text"]},
+            bargap=0.28,
         )
         region_figure.update_xaxes(
-            showgrid=True,
-            gridcolor="#1B4058",
+            showgrid=True, gridcolor="#1B4058",
             tickfont={"color": COLORS["muted"]},
         )
         region_figure.update_yaxes(
-            showgrid=False,
-            tickfont={"color": COLORS["text"]},
+            showgrid=False, tickfont={"color": COLORS["text"]},
+            automargin=True,
         )
         st.plotly_chart(region_figure, width="stretch")
 
+# ROW 2: Donut with explicit type labels and regional coverage
+st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True)
+type_col, coverage_col = st.columns([1, 1], gap="medium")
 type_chart_data = (
     filtered_airports["airport_type"]
     .fillna("unknown")
@@ -262,56 +264,130 @@ type_chart_data = (
     .rename_axis("airport_type")
     .reset_index(name="airport_count")
 )
-type_chart_data["type_label"] = type_chart_data["airport_type"].str.replace(
-    "_", " "
-).str.title()
-type_chart_data = type_chart_data.sort_values("airport_count", ascending=True)
-type_count_range = (
-    0,
-    max(1, int(type_chart_data["airport_count"].max()))
-    if not type_chart_data.empty
-    else 1,
+type_chart_data["type_label"] = (
+    type_chart_data["airport_type"].str.replace("_", " ").str.title()
 )
+type_chart_data = type_chart_data.sort_values("airport_count", ascending=False)
+type_colors = [
+    COLORS["cyan"], COLORS["orange"], COLORS["blue"], COLORS["pink"],
+    "#A855F7", "#22C55E", "#FACC15", "#94A3B8",
+]
 
 with type_col:
-    with st.container(border=True, key="airports-by-type-card"):
+    with st.container(border=True, key="airports-by-type-card", height=BOTTOM_CARD_HEIGHT):
         render_card_header("Airports by Type")
-        type_figure = px.bar(
-            type_chart_data,
-            x="airport_count",
-            y="type_label",
-            orientation="h",
-            color="airport_count",
-            color_continuous_scale=region_color_scale,
-            range_color=type_count_range,
-            hover_name="type_label",
-            hover_data={"airport_type": True, "airport_count": True},
-            labels={"airport_count": "Airports", "type_label": "Type"},
-        )
-        type_figure.update_layout(
-            height=dashboard_chart_height,
-            margin={"r": 0, "t": 0, "l": 0, "b": 0},
-            coloraxis_showscale=False,
-            xaxis_title=None,
-            yaxis_title=None,
-            paper_bgcolor=COLORS["card"],
-            plot_bgcolor=COLORS["card"],
-            font={"color": COLORS["text"]},
-        )
-        type_figure.update_xaxes(
-            showgrid=True,
-            gridcolor="#1B4058",
-            tickfont={"color": COLORS["muted"]},
-        )
-        type_figure.update_yaxes(
-            showgrid=False,
-            tickfont={"color": COLORS["text"]},
-        )
-        st.plotly_chart(type_figure, width="stretch")
+        if type_chart_data.empty:
+            st.info("No airport types available for the selected filters.")
+        else:
+            donut_col, legend_col = st.columns(
+                [1, 1.15], gap="small", vertical_alignment="center"
+            )
+            with donut_col:
+                type_figure = go.Figure(
+                    data=[
+                        go.Pie(
+                            labels=type_chart_data["type_label"],
+                            values=type_chart_data["airport_count"],
+                            hole=0.65,
+                            marker={
+                                "colors": type_colors,
+                                "line": {"color": COLORS["card"], "width": 2},
+                            },
+                            sort=False,
+                            textinfo="none",
+                            showlegend=False,
+                            hovertemplate=(
+                                "%{label}<br>Airports: %{value}<br>"
+                                "Share: %{percent}<extra></extra>"
+                            ),
+                        )
+                    ]
+                )
+                type_figure.add_annotation(
+                    text=f"<b>{total_airports:,}</b><br>Airports",
+                    x=0.5, y=0.5, xref="paper", yref="paper",
+                    font={"size": 17, "color": COLORS["text"]},
+                    showarrow=False,
+                )
+                type_figure.update_layout(
+                    height=190,
+                    margin={"r": 0, "t": 0, "l": 0, "b": 0},
+                    paper_bgcolor=COLORS["card"],
+                    plot_bgcolor=COLORS["card"],
+                    font={"color": COLORS["text"]},
+                    showlegend=False,
+                )
+                st.plotly_chart(
+                    type_figure, width="stretch",
+                    config={"displayModeBar": False},
+                )
+            with legend_col:
+                legend_html = ""
+                for i, (_, item) in enumerate(type_chart_data.iterrows()):
+                    label = escape(str(item["type_label"]))
+                    count = int(item["airport_count"])
+                    color = type_colors[i % len(type_colors)]
+                    legend_html += f"""
+                    <div style="display:flex;align-items:center;
+                        justify-content:space-between;gap:8px;
+                        margin-bottom:10px;color:{COLORS['text']};font-size:13px;">
+                        <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+                            <span style="width:11px;height:11px;flex-shrink:0;
+                                border-radius:50%;background:{color};"></span>
+                            <span>{label}</span>
+                        </div>
+                        <strong>{count}</strong>
+                    </div>
+                    """
+                st.markdown(legend_html, unsafe_allow_html=True)
 
-    render_insight(
-        icon="⌁",
-        value=f"{regions_represented} of {len(region_summary)} regions",
-        description="have airport records in the selected view.",
-        height=int(dashboard_chart_height * 0.25),
-    )
+with coverage_col:
+    with st.container(border=True, key="regional-coverage-card", height=BOTTOM_CARD_HEIGHT):
+        render_card_header("Regional Coverage")
+        # Source-data coverage: count unique administrative region codes.
+        total_regions = region_summary["region_code"].dropna().nunique()
+        coverage_percentage = (
+            regions_represented / total_regions * 100 if total_regions else 0
+        )
+        # Use the same image-based approach as the KPI icons above.
+        icon_col, info_col = st.columns(
+            [1, 6], gap="small", vertical_alignment="center"
+        )
+        with icon_col:
+            icon_path = (
+                Path(__file__).resolve().parents[1]
+                / "icons"
+                / "coverage_icon.jpg"
+            )
+            if icon_path.is_file():
+                st.image(str(icon_path), width="stretch")
+            else:
+                st.warning("Coverage icon missing")
+        with info_col:
+            st.markdown(
+                f"""
+                <div style="display:flex;align-items:baseline;
+                    flex-wrap:wrap;gap:9px;">
+                    <span style="font-size:34px;font-weight:750;
+                        color:{COLORS['text']};">
+                        {regions_represented} of {total_regions}
+                    </span>
+                    <span style="font-size:12px;color:{COLORS['muted']};">
+                        regions represented in the selected view.
+                    </span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+        bar_col, percent_col = st.columns(
+            [6, 1.25], gap="small", vertical_alignment="center"
+        )
+        with bar_col:
+            st.progress(min(1.0, max(0.0, coverage_percentage / 100)))
+        with percent_col:
+            st.markdown(f"**{coverage_percentage:.1f}%**")
+        st.caption(
+            "Coverage reflects regions with airport records in the selected "
+            "view, not actual infrastructure completeness."
+        )

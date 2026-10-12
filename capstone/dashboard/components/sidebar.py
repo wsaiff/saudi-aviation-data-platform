@@ -22,7 +22,10 @@ def render_sidebar(pages):
         unsafe_allow_html=True,
     )
 
-    st.sidebar.markdown("Pages")
+    st.sidebar.markdown(
+    '<span style="color: #F5F7FA; font-weight: 600;">Pages</span>',
+    unsafe_allow_html=True,
+)
     for name, page in pages.items():
         st.sidebar.page_link(page, label=name, icon=page.icon, width="stretch")
 
