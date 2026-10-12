@@ -210,6 +210,31 @@ def inject_css():
             overflow: hidden;
         }}
 
+        .kpi-card-text {{
+            grid-template-columns: minmax(0, 1fr);
+        }}
+
+        .kpi-card-centered .kpi-content {{
+            align-items: center;
+            text-align: center;
+        }}
+
+        .kpi-card-centered .kpi-title {{
+            font-size: 0.92rem;
+        }}
+
+        .kpi-card-centered .kpi-value {{
+            font-size: 2rem;
+        }}
+
+        .kpi-card-centered .kpi-subtitle {{
+            font-size: 0.72rem;
+        }}
+
+        .kpi-card-large-value .kpi-value {{
+            font-size: 2.25rem;
+        }}
+
         .kpi-icon {{
             display: block;
             width: 100%;
