@@ -1,0 +1,22 @@
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: saudi-aviation-platform:latest
+    container_name: saudi-aviation-dashboard
+    working_dir: /app/capstone
+
+    environment:
+      GCP_PROJECT_ID: saudi-aviation-infrastructure
+      GCP_LOCATION: EU
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcp_adc.json
+
+    volumes:
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/run/secrets/gcp_adc.json:ro
+
+    ports:
+      - "8501:8501"
+
+    restart: unless-stopped
