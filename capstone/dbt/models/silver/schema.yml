@@ -1,61 +1,160 @@
+
 version: 2
+
 models:
   - name: regions
+    description: "Saudi administrative regions with standardized region names. Original names are preserved for traceability."
     columns:
       - name: region_code
+        description: "Unique region code used to link airports to Saudi regions."
         data_tests: [unique, not_null]
+
+      - name: region_name_source
+        description: "Original region name from OurAirports, before correction."
+
+      - name: region_name
+        description: "Standardized region name with known source spelling errors corrected."
+
   - name: airports
+    description: "Saudi airport records enriched with region and country information, classification flags, and source data quality indicators."
     columns:
       - name: airport_id
+        description: "Unique numeric identifier assigned by OurAirports."
         data_tests: [unique, not_null]
+
       - name: airport_ident
+        description: "Original airport identifier used to link airports with runways, frequencies, and navaids."
         data_tests: [unique, not_null]
+
+      - name: airport_name
+        description: "Airport name as recorded in the source dataset."
+
+      - name: airport_type
+        description: "Airport classification provided by OurAirports."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [heliport, small_airport, medium_airport, large_airport, closed]
+
       - name: region_code
+        description: "Saudi region code associated with the airport."
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('regions')
                 field: region_code
-      - name: airport_type
-        data_tests:
-          - accepted_values:
-              arguments:
-                values: [heliport, small_airport, medium_airport, large_airport, closed]
+
+      - name: region_name
+        description: "Standardized name of the airport's region."
+
+      - name: latitude_deg
+        description: "Airport latitude in decimal degrees."
+
+      - name: longitude_deg
+        description: "Airport longitude in decimal degrees."
+
+      - name: elevation_ft
+        description: "Airport elevation in feet. Missing values are retained as NULL."
+
+      - name: municipality
+        description: "Municipality associated with the airport, when available."
+
+      - name: has_scheduled_service
+        description: "Indicates whether the source reports scheduled passenger service."
+
+      - name: is_core
+        description: "True for airports that are neither heliports nor closed."
+
+      - name: is_suspect_record
+        description: "Flags AE-0001 (Batha Airport) for an identifier inconsistency requiring source review. The record is retained."
+
   - name: runways
+    description: "Runway records linked to Saudi airports, with standardized surface categories and operational flags."
     columns:
       - name: runway_id
+        description: "Unique runway identifier."
         data_tests: [unique, not_null]
+
       - name: airport_ident
+        description: "Identifier of the airport associated with the runway."
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('airports')
                 field: airport_ident
+
+      - name: length_ft
+        description: "Runway length in feet, when available."
+
+      - name: width_ft
+        description: "Runway width in feet, when available."
+
+      - name: surface_source
+        description: "Original runway surface value from OurAirports."
+
       - name: surface_clean
+        description: "Standardized runway surface category. Unmapped values are classified as Other."
         data_tests:
           - accepted_values:
               arguments:
-                values: [Asphalt, Concrete, Sand, Earth, Unknown]
+                values: [Asphalt, Concrete, Sand, Earth, Unknown, Other]
+
+      - name: is_lighted
+        description: "Indicates whether the runway is marked as lighted in the source."
+
+      - name: is_closed
+        description: "Indicates whether the runway is marked as closed in the source."
+
   - name: navaids
+    description: "Saudi navigation aid records, including records without an associated airport."
     columns:
       - name: navaid_id
+        description: "Unique navigation aid identifier."
         data_tests: [unique, not_null]
+
+      - name: navaid_ident
+        description: "Navigation aid identifier from the source."
+
+      - name: navaid_type
+        description: "Type of navigation aid."
+
+      - name: frequency_khz
+        description: "Navigation aid frequency in kilohertz."
+
       - name: associated_airport_ident
+        description: "Associated airport identifier, when provided. NULL values are retained."
         data_tests:
           - relationships:
               arguments:
                 to: ref('airports')
                 field: airport_ident
+
+      - name: has_airport_link
+        description: "True when an associated airport identifier is present; it does not independently verify the relationship."
+
   - name: frequencies
+    description: "Communication frequency records linked to Saudi airports, with standardized frequency types."
     columns:
       - name: frequency_id
+        description: "Unique communication frequency record identifier."
         data_tests: [unique, not_null]
+
       - name: airport_ident
+        description: "Identifier of the airport associated with the frequency."
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('airports')
                 field: airport_ident
+
+      - name: frequency_type
+        description: "Communication service type standardized to uppercase."
+
+      - name: description
+        description: "Original description of the communication frequency."
+
+      - name: frequency_mhz
+        description: "Reported communication frequency in megahertz. Unusual values are retained for further review."

@@ -1,6 +1,5 @@
 with airports as (
     select * from {{ ref('airports') }}
-    where not is_suspect_record
 ),
 runway_stats as (
     select
