@@ -47,7 +47,9 @@ def satellite_imagery_layer(latitude: float, longitude: float) -> pdk.Layer:
 
 render_header(
     title="Airport explorer",
-    subtitle="Search, filter, and audit airport records from the dbt gold layer.",
+    subtitle=(
+        "Search and explore detailed infrastructure information for each airport."
+    ),
 )
 
 airports = load_airport_infrastructure()
@@ -63,7 +65,9 @@ airports["has_navaid_data"] = airports["has_navaid_data"].fillna(False).astype(b
 kpi_slots = st.columns(3)
 kpi_slots = [column.empty() for column in kpi_slots]
 
-filter_columns = st.columns([2.2, 1.2, 1.35, 1.2, 1.0, 1.0])
+filter_columns = st.columns(
+    [2.2, 1.2, 1.35, 1.2, 1.0, 1.0], vertical_alignment="bottom"
+)
 with filter_columns[0]:
     search = st.text_input(
         "Search IDENT/Name",

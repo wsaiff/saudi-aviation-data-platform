@@ -13,10 +13,10 @@ def _load_icon_data(icon_file):
     icon_path = Path(__file__).resolve().parents[1] / "icons" / icon_file
     with Image.open(icon_path) as image:
         image = image.convert("RGBA")
-        image.thumbnail((96, 96))
+        image.thumbnail((256, 256))
         ImageDraw.floodfill(image, (0, 0), (255, 255, 255, 0), thresh=40)
         optimized_image = io.BytesIO()
-        image.save(optimized_image, format="WEBP", quality=85)
+        image.save(optimized_image, format="WEBP", quality=92)
     return base64.b64encode(optimized_image.getvalue()).decode("ascii")
 
 

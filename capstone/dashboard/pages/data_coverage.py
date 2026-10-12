@@ -3,6 +3,7 @@ from html import escape
 import streamlit as st
 
 from components.header import render_header
+from components.kpi import render_kpi
 from data import (
     load_airport_infrastructure,
     load_coverage_summary,
@@ -12,7 +13,10 @@ from data import (
 
 render_header(
     title="Data coverage",
-    subtitle="Review linked infrastructure-data coverage from the dbt gold layer.",
+    subtitle=(
+        "Understand the availability and completeness of source data for Saudi "
+        "airports."
+    ),
 )
 
 coverage = load_coverage_summary()
@@ -26,15 +30,27 @@ if all_airports_rows.empty:
     raise ValueError("The dbt coverage_summary model has no All airports row.")
 all_airports = all_airports_rows.iloc[0]
 metric_columns = st.columns(3)
-metric_columns[0].metric("Airport records", f"{int(all_airports['airports']):,}")
-metric_columns[1].metric(
-    "Airports with runway data",
-    f"{int(all_airports['with_runways']):,}",
-)
-metric_columns[2].metric(
-    "Airports with frequency data",
-    f"{int(all_airports['with_frequencies']):,}",
-)
+with metric_columns[0]:
+    render_kpi(
+        "Airport records",
+        f"{int(all_airports['airports']):,}",
+        "source airport records",
+        centered=True,
+    )
+with metric_columns[1]:
+    render_kpi(
+        "Airports with runway data",
+        f"{int(all_airports['with_runways']):,}",
+        "linked runway records",
+        centered=True,
+    )
+with metric_columns[2]:
+    render_kpi(
+        "Airports with frequency data",
+        f"{int(all_airports['with_frequencies']):,}",
+        "linked frequency records",
+        centered=True,
+    )
 
 complete_data = (
     airports["has_runway_data"].fillna(False).astype(bool)
@@ -200,9 +216,3 @@ type_coverage = type_coverage.rename(
 )
 type_coverage = type_coverage.drop(columns=["segment_group"])
 st.dataframe(type_coverage, hide_index=True, width="stretch")
-
-st.info(
-    "Coverage measures whether linked runway, frequency, or navigation-aid records "
-    "are present in the source data. "
-    "Missing data does not always mean missing infrastructure."
-)
