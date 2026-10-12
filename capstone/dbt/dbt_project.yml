@@ -1,0 +1,15 @@
+name: saudi_aviation
+version: "1.0.0"
+config-version: 2
+profile: saudi_aviation
+model-paths: ["models"]
+macro-paths: ["macros"]
+
+models:
+  saudi_aviation:
+    silver:
+      +schema: silver
+      +materialized: view
+    gold:
+      +schema: gold
+      +materialized: table
