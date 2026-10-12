@@ -108,6 +108,20 @@ def inject_css():
             padding-right: 1rem;
         }}
 
+        /* Sidebar navigation text and icons */
+        section[data-testid="stSidebar"] [data-testid="stPageLink"] {{
+            color: #F5F7FA !important;
+        }}
+
+        section[data-testid="stSidebar"] [data-testid="stPageLink"] * {{
+            color: #F5F7FA !important;
+        }}
+
+        section[data-testid="stSidebar"] [data-testid="stPageLink"] svg {{
+            color: #F5F7FA !important;
+            stroke: #F5F7FA !important;
+        }}
+
 
         /* =========================
            Page Header
@@ -251,6 +265,7 @@ def inject_css():
         }}
 
 
+
         /* =========================
            Content Cards
         ========================= */
@@ -263,14 +278,18 @@ def inject_css():
             box-sizing: border-box;
         }}
 
+        /* Overview dashboard cards */
         .st-key-saudi-region-map-card,
         .st-key-saudi-region-map-card [data-testid="stVerticalBlockBorderWrapper"],
         .st-key-airports-by-region-card,
         .st-key-airports-by-region-card [data-testid="stVerticalBlockBorderWrapper"],
         .st-key-airports-by-type-card,
-        .st-key-airports-by-type-card [data-testid="stVerticalBlockBorderWrapper"] {{
+        .st-key-airports-by-type-card [data-testid="stVerticalBlockBorderWrapper"],
+        .st-key-regional-coverage-card,
+        .st-key-regional-coverage-card [data-testid="stVerticalBlockBorderWrapper"] {{
             background-color: {COLORS["card"]} !important;
-            border-color: {COLORS["border"]};
+            border-color: {COLORS["border"]} !important;
+            border-radius: 12px !important;
         }}
 
         .card-title {{
