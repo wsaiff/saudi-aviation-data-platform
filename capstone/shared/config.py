@@ -1,4 +1,3 @@
-
 """Shared configuration for the Saudi Aviation Data Platform."""
 
 import os
@@ -39,3 +38,13 @@ class Settings:
 
 
 settings = Settings.from_env()
+
+# Centralized dataset source URLs
+OURAIRPORTS_DATASET_URLS = {
+    "airports": "https://davidmegginson.github.io/ourairports-data/airports.csv",
+    "runways": "https://davidmegginson.github.io/ourairports-data/runways.csv",
+    "navaids": "https://davidmegginson.github.io/ourairports-data/navaids.csv",
+    "frequencies": "https://davidmegginson.github.io/ourairports-data/airport-frequencies.csv",
+    "regions": "https://davidmegginson.github.io/ourairports-data/regions.csv",
+    "countries": "https://davidmegginson.github.io/ourairports-data/countries.csv",
+}
