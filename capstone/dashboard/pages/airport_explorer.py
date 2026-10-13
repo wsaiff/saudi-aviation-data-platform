@@ -66,8 +66,8 @@ def _render_comparison_table(selected_airports):
         ("Overview & Location", None, None),
         ("Region", "region_name", "M4 4h16v16H4z M8 8h8v8H8z"),
         (
-            "Airport Size",
-            "airport_size",
+            "Airport Type",
+            "airport_type",
             "M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-5 8v-4h4v4",
         ),
         (
@@ -173,16 +173,6 @@ def _render_comparison_table(selected_airports):
                 latitude = _text_value(airport["latitude_deg"])
                 longitude = _text_value(airport["longitude_deg"])
                 value = escape(f"{latitude}, {longitude}")
-            elif field == "airport_size":
-                airport_size = _text_value(airport.get("airport_size"), "")
-                if not airport_size:
-                    airport_type = _text_value(airport.get("airport_type"), "")
-                    airport_size = {
-                        "large_airport": "Large",
-                        "medium_airport": "Medium",
-                        "small_airport": "Small",
-                    }.get(airport_type, "Not applicable")
-                value = escape(airport_size)
             elif field in {"navaid_types", "frequency_types"}:
                 value = escape(
                     _text_value(
@@ -400,7 +390,6 @@ render_header(
 
 airports = load_airport_infrastructure()
 extended_fields = {
-    "airport_size",
     "icao_code",
     "iata_code",
     "navaid_types",
@@ -410,8 +399,7 @@ missing_extended_fields = extended_fields.difference(airports.columns)
 if missing_extended_fields:
     st.warning(
         "The published airport infrastructure table is missing newer "
-        "size, identifier, or infrastructure-type fields. Airport size will "
-        "be inferred from the airport type where possible; rebuild the dbt "
+        "identifier or infrastructure-type fields. Rebuild the dbt "
         "silver airports and gold airport_infrastructure models to enable "
         "ICAO/IATA search and navigation/frequency type details."
     )
