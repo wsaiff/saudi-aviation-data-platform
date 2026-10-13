@@ -8,6 +8,9 @@ select
     countif(a.has_runway_data) as airports_with_runways,
     countif(a.has_frequency_data) as airports_with_frequencies,
     countif(a.has_navaid_data) as airports_with_navaids,
+    countif(a.is_core and a.has_runway_data) as core_with_runways,
+    countif(a.is_core and a.has_frequency_data) as core_with_frequencies,
+    countif(a.is_core and a.has_navaid_data) as core_with_navaids,
     coalesce(sum(a.runway_count), 0) as total_runways
 from {{ ref('regions') }} r
 left join {{ ref('airport_infrastructure') }} a on r.region_code = a.region_code
