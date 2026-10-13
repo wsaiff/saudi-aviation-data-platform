@@ -12,6 +12,11 @@ select
     a.id as airport_id,
     a.ident as airport_ident,
     a.type as airport_type,
+    case a.type
+        when 'large_airport' then 'Large'
+        when 'medium_airport' then 'Medium'
+        when 'small_airport' then 'Small'
+    end as airport_size,
     a.name as airport_name,
     a.latitude_deg,
     a.longitude_deg,
