@@ -6,6 +6,8 @@ COLORS = {
     "sidebar": "#061525",
     "card": "#0D2940",
     "card_hover": "#12344D",
+    "widget": "#102B3E",
+    "widget_hover": "#19445D",
     "border": "#1B4058",
 
     "text": "#F5F7FA",
@@ -55,10 +57,46 @@ def inject_css():
         }}
 
         div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
-            background-color: {COLORS["card"]};
+            background-color: {COLORS["widget"]};
             border-color: {COLORS["border"]};
             border-radius: 8px;
             color: {COLORS["text"]};
+        }}
+
+        div[data-testid="stSelectbox"] [role="group"] {{
+            background-color: {COLORS["widget"]};
+            border: 1px solid {COLORS["border"]};
+            border-radius: 8px;
+            overflow: hidden;
+        }}
+
+        div[data-testid="stSelectbox"] [role="combobox"] {{
+            background-color: transparent;
+            border: 0;
+            color: {COLORS["text"]};
+        }}
+
+        div[data-testid="stSelectbox"] [role="group"] button {{
+            background-color: transparent;
+            border: 0;
+            color: {COLORS["muted"]};
+        }}
+
+        div[data-testid="stTextInput"] input {{
+            background-color: {COLORS["widget"]};
+            border-color: {COLORS["border"]};
+            border-radius: 8px;
+            color: {COLORS["text"]};
+        }}
+
+        div[data-testid="stTextInput"] input::placeholder {{
+            color: {COLORS["muted"]};
+            opacity: 1;
+        }}
+
+        div[data-testid="stTextInput"] input:focus {{
+            border-color: {COLORS["cyan"]};
+            box-shadow: 0 0 0 1px {COLORS["cyan"]};
         }}
 
         div[data-testid="stSelectbox"] [data-baseweb="select"] input,
@@ -73,20 +111,56 @@ def inject_css():
         [data-baseweb="popover"],
         [data-baseweb="popover"] [data-baseweb="menu"],
         [data-baseweb="popover"] [role="listbox"] {{
-            background-color: {COLORS["card"]};
+            background-color: {COLORS["widget"]};
             border: 1px solid {COLORS["border"]};
             border-radius: 8px;
+            color: {COLORS["text"]};
+            z-index: 1000;
         }}
 
         [data-baseweb="popover"] [role="option"] {{
-            background-color: {COLORS["card"]};
+            background-color: {COLORS["widget"]};
             color: {COLORS["text"]};
         }}
 
         [data-baseweb="popover"] [role="option"]:hover,
         [data-baseweb="popover"] [role="option"][aria-selected="true"] {{
-            background-color: {COLORS["card_hover"]};
+            background-color: {COLORS["widget_hover"]};
             color: {COLORS["text"]};
+        }}
+
+        [role="listbox"] {{
+            background-color: {COLORS["widget"]};
+            border: 1px solid {COLORS["border"]};
+            border-radius: 8px;
+            color: {COLORS["text"]};
+            z-index: 1000;
+        }}
+
+        [role="listbox"] [role="option"] {{
+            background-color: {COLORS["widget"]};
+            color: {COLORS["text"]};
+        }}
+
+        [role="listbox"] [role="option"]:hover,
+        [role="listbox"] [role="option"][aria-selected="true"] {{
+            background-color: {COLORS["widget_hover"]};
+            color: {COLORS["text"]};
+        }}
+
+        [data-testid="stSelectboxVirtualDropdown"] {{
+            background-color: {COLORS["widget"]};
+            border: 1px solid {COLORS["border"]};
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1000;
+        }}
+
+        div[data-testid="stDataFrame"] {{
+            background-color: {COLORS["widget"]};
+            border: 1px solid {COLORS["border"]};
+            border-radius: 8px;
+            overflow: hidden;
         }}
 
 
@@ -218,8 +292,9 @@ def inject_css():
             border: 1px solid {COLORS["border"]};
             border-radius: 12px;
             display: grid;
-            grid-template-columns: 38% minmax(0, 1fr);
-            min-height: 126px;
+            grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+            grid-template-rows: minmax(0, 1fr);
+            height: 126px;
             box-sizing: border-box;
             overflow: hidden;
         }}
@@ -252,10 +327,15 @@ def inject_css():
         .kpi-icon {{
             display: block;
             width: 100%;
-            height: 100%;
-            border-radius: 11px 0 0 11px;
-            object-fit: cover;
-            object-position: center;
+            height: auto;
+            aspect-ratio: 1;
+            min-width: 0;
+            min-height: 0;
+            max-width: 100%;
+            max-height: 100%;
+            align-self: center;
+            border-radius: 8px;
+            object-fit: contain;
         }}
 
         .kpi-content {{
@@ -266,6 +346,7 @@ def inject_css():
             justify-content: center;
             gap: 0.35rem;
             min-width: 0;
+            min-height: 0;
             padding: 0.75rem 0.65rem;
         }}
 

@@ -26,8 +26,8 @@ region_boundaries = load_region_boundaries()
 render_header(
     title="Saudi Arabia Aviation Overview",
     subtitle=(
-        "Explore airport infrastructure and source-data coverage "
-        "from the dbt gold layer."
+        "Explore airport infrastructure, regional distribution, and data "
+        "coverage from OurAirports."
     ),
 )
 
