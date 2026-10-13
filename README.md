@@ -83,7 +83,7 @@ Run from the `capstone` directory after the Gold dbt models have been built:
 streamlit run dashboard/app.py
 ```
 
-The app opens at <http://localhost:8501>. It queries the Gold tables in BigQuery and does not read the OurAirports CSV files directly. For local use, the dashboard can use the ADC credentials configured above. Set `GCP_PROJECT_ID`, `GCP_LOCATION` (defaults to `EU`), and `GOLD_DATASET` (defaults to `gold`) in the environment or Streamlit secrets.
+The app opens at <http://localhost:8501>. It queries the Gold tables in BigQuery. For local use, the dashboard can use the ADC credentials configured above. Set `GCP_PROJECT_ID`, `GCP_LOCATION` (defaults to `EU`), and `GOLD_DATASET` (defaults to `gold`) in the environment or Streamlit secrets.
 
 For Streamlit Community Cloud, configure those settings in the app's secrets and add a `gcp_service_account` section containing the service account credentials. Give that account BigQuery job-creation permission and read access to the Gold dataset. Never commit service-account credentials or `.streamlit/secrets.toml`.
 
