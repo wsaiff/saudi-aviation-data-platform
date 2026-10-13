@@ -19,63 +19,94 @@ render_header(
     ),
 )
 
+st.subheader("What data completeness means")
+st.write(
+    "Here, data completeness means whether OurAirports has linked runway, "
+    "navigation-aid, and communication-frequency records for an airport. "
+    "It describes data availability in the source dataset, not whether the "
+    "information is exhaustive or independently verified."
+)
+
 coverage = load_coverage_summary()
 regions = load_region_summary()
 airports = load_airport_infrastructure()
-overall_coverage = coverage.loc[coverage["segment_group"] == "Overall"]
-all_airports_rows = overall_coverage.loc[
-    overall_coverage["segment"] == "All airports"
-]
-if all_airports_rows.empty:
-    raise ValueError("The dbt coverage_summary model has no All airports row.")
-all_airports = all_airports_rows.iloc[0]
+core_airports = airports.loc[airports["is_core"].fillna(False)].copy()
+total_core_airports = len(core_airports)
+
+
+def availability_percentage(column):
+    if total_core_airports == 0:
+        return "0.0%"
+    available_airports = (
+        core_airports[column].fillna(False).astype(bool).sum()
+    )
+    return f"{100 * available_airports / total_core_airports:.1f}%"
+
+
 metric_columns = st.columns(3)
 with metric_columns[0]:
     render_kpi(
-        "Airport records",
-        f"{int(all_airports['airports']):,}",
-        "source airport records",
-        centered=True,
+        "Runway data availability",
+        availability_percentage("has_runway_data"),
+        "of qualifying airports",
+        icon_image="runway_icon.jpg",
     )
 with metric_columns[1]:
     render_kpi(
-        "Airports with runway data",
-        f"{int(all_airports['with_runways']):,}",
-        "linked runway records",
-        centered=True,
+        "Navigation-aid data availability",
+        availability_percentage("has_navaid_data"),
+        "of qualifying airports",
+        icon_image="navaids_icon.jpg",
     )
 with metric_columns[2]:
     render_kpi(
-        "Airports with frequency data",
-        f"{int(all_airports['with_frequencies']):,}",
-        "linked frequency records",
-        centered=True,
+        "Frequency data availability",
+        availability_percentage("has_frequency_data"),
+        "of qualifying airports",
+        icon_image="frequencies_icon.jpg",
     )
 
 complete_data = (
-    airports["has_runway_data"].fillna(False).astype(bool)
-    & airports["has_navaid_data"].fillna(False).astype(bool)
-    & airports["has_frequency_data"].fillna(False).astype(bool)
+    core_airports["has_runway_data"].fillna(False).astype(bool)
+    & core_airports["has_navaid_data"].fillna(False).astype(bool)
+    & core_airports["has_frequency_data"].fillna(False).astype(bool)
 )
-complete_by_region = (
-    airports.assign(complete_data=complete_data)
-    .groupby("region_code", dropna=False)["complete_data"]
-    .sum()
-    .rename("complete_airports")
+regional_airport_counts = (
+    core_airports.assign(
+        has_runway_data=core_airports["has_runway_data"]
+        .fillna(False)
+        .astype(bool),
+        has_navaid_data=core_airports["has_navaid_data"]
+        .fillna(False)
+        .astype(bool),
+        has_frequency_data=core_airports["has_frequency_data"]
+        .fillna(False)
+        .astype(bool),
+        complete_data=complete_data,
+    )
+    .groupby("region_code", dropna=False)
+    .agg(
+        total_airports=("airport_ident", "size"),
+        airports_with_runways=("has_runway_data", "sum"),
+        airports_with_navaids=("has_navaid_data", "sum"),
+        airports_with_frequencies=("has_frequency_data", "sum"),
+        complete_airports=("complete_data", "sum"),
+    )
+    .reset_index()
 )
 region_coverage = (
-    regions[
-        [
-            "region_code",
-            "region_name",
-            "total_airports",
-            "airports_with_runways",
-            "airports_with_navaids",
-            "airports_with_frequencies",
-        ]
-    ]
-    .merge(complete_by_region, on="region_code", how="left")
-    .fillna({"complete_airports": 0})
+    regions[["region_code", "region_name"]]
+    .drop_duplicates()
+    .merge(regional_airport_counts, on="region_code", how="left")
+    .fillna(
+        {
+            "total_airports": 0,
+            "airports_with_runways": 0,
+            "airports_with_navaids": 0,
+            "airports_with_frequencies": 0,
+            "complete_airports": 0,
+        }
+    )
     .sort_values("total_airports", ascending=False)
 )
 
