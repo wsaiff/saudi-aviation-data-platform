@@ -11,12 +11,19 @@ runway_stats as (
     group by airport_ident
 ),
 frequency_stats as (
-    select airport_ident, count(*) as frequency_count
+    select
+        airport_ident,
+        count(*) as frequency_count,
+        string_agg(distinct frequency_type, ', ' order by frequency_type)
+            as frequency_types
     from {{ ref('frequencies') }}
     group by airport_ident
 ),
 navaid_stats as (
-    select associated_airport_ident as airport_ident, count(*) as navaid_count
+    select
+        associated_airport_ident as airport_ident,
+        count(*) as navaid_count,
+        string_agg(distinct navaid_type, ', ' order by navaid_type) as navaid_types
     from {{ ref('navaids') }}
     where has_airport_link
     group by associated_airport_ident
@@ -25,6 +32,8 @@ joined as (
     select
         a.airport_id,
         a.airport_ident,
+        a.icao_code,
+        a.iata_code,
         a.airport_name,
         a.airport_type,
         a.latitude_deg,
@@ -41,7 +50,9 @@ joined as (
         r.longest_runway_ft,
         r.runway_surfaces,
         coalesce(f.frequency_count, 0) as frequency_count,
+        f.frequency_types,
         coalesce(n.navaid_count, 0) as navaid_count,
+        n.navaid_types,
         coalesce(r.runway_count, 0) > 0 as has_runway_data,
         coalesce(f.frequency_count, 0) > 0 as has_frequency_data,
         coalesce(n.navaid_count, 0) > 0 as has_navaid_data

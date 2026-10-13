@@ -18,6 +18,12 @@ models:
         description: "Original airport identifier used to link infrastructure records."
         data_tests: [unique, not_null]
 
+      - name: icao_code
+        description: "ICAO code for the airport, when provided by OurAirports."
+
+      - name: iata_code
+        description: "IATA code for the airport, when provided by OurAirports."
+
       - name: airport_name
         description: "Airport name as recorded in OurAirports."
 
@@ -66,8 +72,14 @@ models:
       - name: frequency_count
         description: "Number of communication frequency records linked to the airport."
 
+      - name: frequency_types
+        description: "Distinct communication frequency types linked to the airport."
+
       - name: navaid_count
         description: "Number of navigation aid records explicitly associated with the airport."
+
+      - name: navaid_types
+        description: "Distinct navigation aid types explicitly associated with the airport."
 
       - name: has_runway_data
         description: "True when at least one runway record is linked to the airport."
