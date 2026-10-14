@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+CAPSTONE_DIR = Path(__file__).resolve().parents[1]
+if str(CAPSTONE_DIR) not in sys.path:
+    sys.path.insert(0, str(CAPSTONE_DIR))
+
 import streamlit as st
 
 from components.sidebar import render_sidebar
