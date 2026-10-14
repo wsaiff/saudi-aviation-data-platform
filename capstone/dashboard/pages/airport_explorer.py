@@ -13,7 +13,12 @@ STATUS_COLORS = {"available": "#27C4D9", "missing": "#9BAEC0"}
 
 def _airport_label(airport):
     name = _text_value(airport["airport_name"], "")
-    identifier = _airport_code(airport)
+    identifiers = [
+        _text_value(airport[column], "")
+        for column in ("iata_code", "icao_code", "airport_ident")
+        if column in airport.index
+    ]
+    identifier = " / ".join(dict.fromkeys(value for value in identifiers if value))
     region = _text_value(airport["region_name"], "")
     parts = [value for value in (name, identifier, region) if value]
     return " · ".join(parts)
@@ -33,13 +38,8 @@ def _formatted_number(value, unit=""):
     return f"{formatted}{unit}"
 
 
-def _airport_code(airport):
-    for column in ("iata_code", "icao_code", "airport_ident"):
-        if column in airport.index:
-            value = _text_value(airport[column], "")
-            if value:
-                return value
-    return "No identifier"
+def _airport_type_label(airport_type):
+    return str(airport_type).replace("_", " ").title()
 
 
 def _badge(available):
@@ -403,179 +403,80 @@ if missing_extended_fields:
         "silver airports and gold airport_infrastructure models to enable "
         "ICAO/IATA search and navigation/frequency type details."
     )
-if "airport_compare_ids" not in st.session_state:
-    st.session_state.airport_compare_ids = []
-
 airport_index = airports.set_index("airport_id", drop=False)
-valid_ids = set(airport_index.index)
-st.session_state.airport_compare_ids = [
+selection_key = "airport_compare_selection"
+if selection_key not in st.session_state:
+    st.session_state[selection_key] = st.session_state.get(
+        "airport_compare_ids", []
+    )
+valid_airport_ids = set(airport_index.index)
+st.session_state[selection_key] = [
     airport_id
-    for airport_id in st.session_state.airport_compare_ids
-    if airport_id in valid_ids
+    for airport_id in st.session_state[selection_key]
+    if airport_id in valid_airport_ids
 ][:3]
 
-search_column, selected_column = st.columns([1, 1], gap="medium")
-with search_column:
-    with st.container(border=True):
-        st.markdown("### :material/search: Search and select airports")
-        with st.form("airport_compare_search_form"):
-            search = st.text_input(
-                "Search airports",
-                placeholder="Search by airport name or ICAO/IATA code...",
-                key="airport_compare_search_input",
-            )
-            region_options = [
-                "All regions",
-                *sorted(airports["region_name"].dropna().unique().tolist()),
-            ]
-            type_options = [
-                "All types",
-                *sorted(airports["airport_type"].dropna().unique().tolist()),
-            ]
-            region_filter, type_filter = st.columns(2)
-            with region_filter:
-                selected_region = st.selectbox(
-                    "Region", region_options, key="airport_compare_region_input"
-                )
-            with type_filter:
-                selected_type = st.selectbox(
-                    "Airport type", type_options, key="airport_compare_type_input"
-                )
-            search_submitted = st.form_submit_button(
-                "Search airports", width="stretch"
-            )
+st.markdown("### 1. Filter Available Airports")
+region_column, type_column = st.columns(2)
+with region_column:
+    region_options = [
+        "All regions",
+        *sorted(airports["region_name"].dropna().unique().tolist()),
+    ]
+    selected_region = st.selectbox(
+        "Region",
+        region_options,
+        key="airport_compare_region_filter",
+    )
+with type_column:
+    airport_types = sorted(airports["airport_type"].dropna().unique().tolist())
+    selected_type = st.selectbox(
+        "Airport type",
+        ["All types", *airport_types],
+        format_func=lambda airport_type: (
+            "All types"
+            if airport_type == "All types"
+            else _airport_type_label(airport_type)
+        ),
+        key="airport_compare_type_filter",
+    )
 
-        if search_submitted:
-            st.session_state.airport_compare_submitted_search = search.strip()
-            st.session_state.airport_compare_submitted_region = selected_region
-            st.session_state.airport_compare_submitted_type = selected_type
-            st.session_state.pop("airport_compare_picker", None)
+filtered_df = airports
+if selected_region != "All regions":
+    filtered_df = filtered_df.loc[filtered_df["region_name"] == selected_region]
+if selected_type != "All types":
+    filtered_df = filtered_df.loc[filtered_df["airport_type"] == selected_type]
+filtered_df = filtered_df.sort_values("airport_name", na_position="last")
 
-        submitted_search = st.session_state.get(
-            "airport_compare_submitted_search", ""
-        )
-        submitted_region = st.session_state.get(
-            "airport_compare_submitted_region", "All regions"
-        )
-        submitted_type = st.session_state.get(
-            "airport_compare_submitted_type", "All types"
-        )
-        if submitted_search:
-            search_results = airports.loc[
-                ~airports["airport_id"].isin(st.session_state.airport_compare_ids)
-            ].copy()
-            search_columns = [
-                column
-                for column in (
-                    "airport_name",
-                    "icao_code",
-                    "iata_code",
-                    "airport_ident",
-                )
-                if column in search_results.columns
-            ]
-            searchable = search_results[search_columns].fillna("").astype("string")
-            matches = searchable.apply(
-                lambda column: column.str.contains(
-                    submitted_search, case=False, regex=False
-                )
-            ).any(axis=1)
-            search_results = search_results.loc[matches]
-            if submitted_region != "All regions":
-                search_results = search_results.loc[
-                    search_results["region_name"] == submitted_region
-                ]
-            if submitted_type != "All types":
-                search_results = search_results.loc[
-                    search_results["airport_type"] == submitted_type
-                ]
-            search_results = search_results.sort_values("airport_name")
-            if search_results.empty:
-                st.info("No airports match your search and filters.")
-                st.session_state.pop("airport_compare_candidate_id", None)
-            else:
-                option_rows = search_results.set_index("airport_id", drop=False)
-                picker_key = (
-                    "airport_compare_picker_"
-                    f"{submitted_search}_{submitted_region}_{submitted_type}"
-                )
-                selected_id = st.selectbox(
-                    "Matching airports",
-                    search_results["airport_id"].tolist(),
-                    format_func=lambda airport_id: _airport_label(
-                        option_rows.loc[airport_id]
-                    ),
-                    key=picker_key,
-                )
-                st.session_state.airport_compare_candidate_id = selected_id
-        else:
-            st.caption("Enter an airport name or code and press Enter to see matches.")
+st.markdown("### 2. Search & Select (Up to 3)")
+selected_count = len(st.session_state[selection_key])
+st.markdown(
+    "<div style='text-align:right;color:#9BAEC0;font-size:0.8rem;"
+    f"margin-bottom:0.25rem'>{selected_count} of 3 selected</div>",
+    unsafe_allow_html=True,
+)
+filtered_airport_ids = filtered_df["airport_id"].tolist()
+selected_airport_ids_before_filter = st.session_state[selection_key]
+multiselect_options = [
+    *filtered_airport_ids,
+    *(
+        airport_id
+        for airport_id in selected_airport_ids_before_filter
+        if airport_id not in filtered_airport_ids
+    ),
+]
+selected_airport_ids = st.multiselect(
+    "Type an airport name or ID to search:",
+    options=multiselect_options,
+    format_func=lambda airport_id: _airport_label(airport_index.loc[airport_id]),
+    max_selections=3,
+    placeholder="Choose or search available airports",
+    key=selection_key,
+)
+selected_airports = [
+    airport_index.loc[airport_id] for airport_id in selected_airport_ids
+]
 
-with selected_column:
-    with st.container(border=True):
-        action_columns = st.columns([1.7, 1, 0.8], vertical_alignment="center")
-        with action_columns[0]:
-            st.markdown("### Selected airports (up to 3)")
-        with action_columns[1]:
-            candidate_id = st.session_state.get("airport_compare_candidate_id")
-            add_disabled = (
-                candidate_id is None
-                or candidate_id in st.session_state.airport_compare_ids
-                or len(st.session_state.airport_compare_ids) >= 3
-            )
-            if st.button(
-                "+ Add airport",
-                key="airport_compare_add_toggle",
-                type="secondary",
-                width="stretch",
-                disabled=add_disabled,
-            ):
-                st.session_state.airport_compare_ids.append(candidate_id)
-                st.session_state.pop("airport_compare_candidate_id", None)
-                st.session_state.pop("airport_compare_submitted_search", None)
-                st.session_state.pop("airport_compare_submitted_region", None)
-                st.session_state.pop("airport_compare_submitted_type", None)
-                st.rerun()
-        with action_columns[2]:
-            if st.button(
-                "⊘ Clear all",
-                key="airport_compare_clear",
-                type="tertiary",
-                width="stretch",
-                disabled=not st.session_state.airport_compare_ids,
-            ):
-                st.session_state.airport_compare_ids = []
-                st.rerun()
-
-        selected_airports = [
-            airport_index.loc[airport_id]
-            for airport_id in st.session_state.airport_compare_ids
-        ]
-        for index, airport in enumerate(selected_airports):
-            chip_columns = st.columns([0.06, 0.78, 0.16], vertical_alignment="center")
-            with chip_columns[0]:
-                st.html(
-                    '<span class="comparison-dot" style="--dot-color:'
-                    f'{DOT_COLORS[index]}"></span>'
-                )
-            with chip_columns[1]:
-                st.markdown(
-                    f"**{_text_value(airport['airport_name'], 'Unnamed airport')}**"
-                    f"  \n{_airport_code(airport)}"
-                )
-            with chip_columns[2]:
-                if st.button(
-                    "×",
-                    key=f"airport_compare_remove_{airport['airport_id']}",
-                    help=f"Remove {_text_value(airport['airport_name'])}",
-                ):
-                    st.session_state.airport_compare_ids.remove(
-                        airport["airport_id"]
-                    )
-                    st.rerun()
-
-        if not selected_airports:
-            st.caption("No airports selected yet.")
 st.markdown("### Airport comparison & infrastructure")
 with st.container(border=True):
     if selected_airports:

@@ -19,7 +19,7 @@
   },
   "updateContentCommand": "python3 -m pip install --user -e ./capstone",
   "postAttachCommand": {
-    "server": "streamlit run capstone/dashboard/app.py --server.enableCORS false --server.enableXsrfProtection false"
+    "server": "cd capstone/dashboard && streamlit run app.py --server.enableCORS false --server.enableXsrfProtection false"
   },
   "portsAttributes": {
     "8501": {
