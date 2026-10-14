@@ -45,11 +45,15 @@ The checks are read-only and do not modify Silver tables.
 - Latitude outside the range -90 to 90
 - Longitude outside the range -180 to 180
 - Duplicate non-empty `airport_ident` values
+- Correct mapping of `airport_type` to the derived `airport_size` column.
+- `airport_size` contains only `Large`, `Medium`, `Small`, or `NULL`.
+- `NULL` values in `airport_size` are reviewed for airport types that are not included in the mapping.
 
 **Expected results:**
 - No invalid coordinate values
 - No duplicate identifiers, if `airport_ident` is confirmed as unique under the project rules
 - Missing required values are investigated
+- Null sizes are consistent with the transformation rules and are not automatically treated as errors.
 
 **Observed result:** Manual checks appeared to pass; no unexpected issues were reported.
 
