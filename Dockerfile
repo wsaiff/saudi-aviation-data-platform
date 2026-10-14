@@ -13,9 +13,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 COPY capstone/ /app/capstone/
 
-WORKDIR /app/capstone/dashboard
-
+# Install project dependencies from pyproject.toml
+WORKDIR /app/capstone
 RUN pip install --no-cache-dir .
+
+# Run Streamlit from the dashboard directory
+WORKDIR /app/capstone/dashboard
 
 EXPOSE 8501
 
