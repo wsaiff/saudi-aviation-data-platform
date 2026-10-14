@@ -1,11 +1,21 @@
 # Saudi Aviation Infrastructure & Data Platform
 
-<img width="1920" height="918" alt="20261014-0714-10 0287351" src="https://github.com/user-attachments/assets/4c86ff7f-33df-428e-8ccc-1c9857577e91" />
-
-
 An automated data engineering and analytics platform that brings together open aviation infrastructure data—including airports, runways, navaids, and communication frequencies—for analysis and visualization across Saudi Arabia.
 
 The project loads raw data into BigQuery, transforms it with dbt into Silver and Gold models, and presents the Gold data in a Streamlit dashboard.
+
+## Screenshots
+### Overview page
+<img width="1919" height="912" alt="Overview" src="https://github.com/user-attachments/assets/5bad34ff-8686-4874-90bd-ebca63b6788e" />
+### Airport_explorer Page
+<img width="1919" height="909" alt="Airport_explorer_1" src="https://github.com/user-attachments/assets/9a419c1f-b2c8-4a92-ac92-1bad8a67e3f3" />
+### Data Coverage Page
+<img width="1919" height="912" alt="data_coverage" src="https://github.com/user-attachments/assets/8de67fd9-f432-481b-9db2-17b433aee6ed" />
+
+## Architecture Diagram
+
+<img width="1280" height="720" alt="diagram" src="https://github.com/user-attachments/assets/350cdc89-707b-4770-9faa-c1bb65201fbc" />
+
 
 ## Requirements
 
