@@ -8,7 +8,7 @@ The project loads raw data into BigQuery, transforms it with dbt into Silver and
 ### Overview page
 <img width="1919" height="912" alt="Overview" src="https://github.com/user-attachments/assets/5bad34ff-8686-4874-90bd-ebca63b6788e" />
 
-### Airport_explorer Page
+### Airport Explorer Page
 <img width="1919" height="909" alt="Airport_explorer_1" src="https://github.com/user-attachments/assets/9a419c1f-b2c8-4a92-ac92-1bad8a67e3f3" />
 
 ### Data Coverage Page
