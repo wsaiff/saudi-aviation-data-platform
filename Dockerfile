@@ -13,10 +13,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 COPY capstone/ /app/capstone/
 
-WORKDIR /app/capstone
+WORKDIR /app/capstone/dashboard
 
 RUN pip install --no-cache-dir .
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "dashboard/app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]
+CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]

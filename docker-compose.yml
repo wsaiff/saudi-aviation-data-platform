@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     image: saudi-aviation-platform:latest
     container_name: saudi-aviation-dashboard
-    working_dir: /app/capstone
+    working_dir: /app/capstone/dashboard
 
     environment:
       GCP_PROJECT_ID: saudi-aviation-infrastructure

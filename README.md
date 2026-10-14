@@ -77,10 +77,10 @@ The Silver models are built as views and the Gold models as tables. Gold tables 
 
 ## Run the Streamlit dashboard
 
-Run from the `capstone` directory after the Gold dbt models have been built:
+Run from the `capstone/dashboard` directory after the Gold dbt models have been built:
 
 ```bash
-streamlit run dashboard/app.py
+streamlit run app.py
 ```
 
 The app opens at <http://localhost:8501>. It queries the Gold tables in BigQuery. For local use, the dashboard can use the ADC credentials configured above. Set `GCP_PROJECT_ID`, `GCP_LOCATION` (defaults to `EU`), and `GOLD_DATASET` (defaults to `gold`) in the environment or Streamlit secrets.
