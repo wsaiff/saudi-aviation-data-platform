@@ -1,6 +1,6 @@
 # Saudi Aviation Infrastructure & Data Platform
 
-An automated data engineering and analytics platform that brings together open aviation infrastructure data—including airports, runways, navaids, and communication frequencies—for analysis and visualization across Saudi Arabia.
+A data engineering and analytics platform that brings together open aviation infrastructure data—including airports, runways, navaids, and communication frequencies—for analysis and visualization across Saudi Arabia.
 
 The project loads raw data into BigQuery, transforms it with dbt into Silver and Gold models, and presents the Gold data in a Streamlit dashboard.
 
