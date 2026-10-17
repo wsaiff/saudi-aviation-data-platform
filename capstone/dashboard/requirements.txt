@@ -1,0 +1,8 @@
+# Used by Streamlit Cloud. Do not delete. Keep in sync with capstone/pyproject.toml.
+streamlit==1.65.0
+plotly==7.1.0
+db-dtypes>=1.2,<2
+google-cloud-bigquery==3.46.1
+pandas==3.0.6
+pyarrow==25.0.1
+python-dotenv>=1.0
