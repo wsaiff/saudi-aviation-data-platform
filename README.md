@@ -104,7 +104,6 @@ During development, several data quality and integration challenges were address
 | Challenge | Solution |
 |---|---|
 | Inconsistent runway surface names | Standardized different representations into consistent categories |
-| Missing-value interpretation | Preserved valid country codes such as `NA` that could otherwise be interpreted as null values |
 | Inconsistent region names | Corrected identified Saudi region name errors while preserving the original source values |
 | Cloud database connectivity | Configured secure BigQuery access for the deployed Streamlit dashboard |
 
